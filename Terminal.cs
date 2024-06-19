@@ -119,7 +119,6 @@ public enum TColor
 }
 
 /* TODO:
-    - alias command alias.cfg
     - Clear binds command
 */
 
@@ -202,6 +201,12 @@ public partial class Terminal : Control
         if(_viewport == null){
             GD.PrintErr($"Terminal: Could not get viewport.");
             return;
+        }
+
+        // Check that key binds exist
+        if(!InputMap.HasAction("terminal_toggle")){
+            GD.PrintErr("Terminal: " + "Must create Action 'terminal_toggle' in Input Map!");
+            Print("Must create Action 'terminal_toggle' in Input Map!");
         }
 
         AddCommand("help" , 
@@ -331,12 +336,15 @@ public partial class Terminal : Control
                 file.StoreLine(_binds[i].BindCommand);
             }
         }
-
-        GD.Print("Binds saved.");
+        //GD.Print("Binds saved.");
     }
 
     void LoadBinds()
     {
+        if(!Godot.FileAccess.FileExists(BINDS_PATH)){
+            return;
+        }
+
         using(var file = Godot.FileAccess.Open(BINDS_PATH, FileAccess.ModeFlags.Read))
         {
             string[] lines = file.GetAsText(true).Split('\n');
@@ -363,14 +371,15 @@ public partial class Terminal : Control
         string inputLowercase = input.ToLower();
         // Convert into string array
         string[] splitInput = inputLowercase.Split(' ');
+        string commandName  = splitInput[0];
 
         // Check if first string in command is valid command, execute it if so 
         TerminalCommand command;
-        bool isValidCommand = _commands.TryGetValue(splitInput[0], out command);
+        bool isValidCommand = _commands.TryGetValue(commandName, out command);
         if(isValidCommand == false){
             return false;
         }
-
+        // Check for correct num of args
         if(command.ArgCount != 0){
             if(splitInput.Length < 1 + command.ArgCount){
                 Print($"{command.Key} Incorect num of args! \nHelp:{command.HelpText}", true, TColor.Red, TStyleFlag.Error);
@@ -553,11 +562,6 @@ public partial class Terminal : Control
     TerminalReturn ClearBinds(string args)
     {
         //TODO:InputMap.EraseAction
-        throw new NotImplementedException();
-    }
-
-    TerminalReturn Alias(string args)
-    {
         throw new NotImplementedException();
     }
 
