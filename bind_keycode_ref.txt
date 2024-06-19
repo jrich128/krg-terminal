@@ -1,0 +1,773 @@
+Drop the "KEY_" part, and these are all the valid key names you can use with the "bind" command. Copypasta'd from the docs for convenience 
+
+
+Key KEY_NONE = 0
+
+Enum value which doesn't correspond to any key. This is used to initialize Key properties with a generic state.
+
+Key KEY_SPECIAL = 4194304
+
+Keycodes with this bit applied are non-printable.
+
+Key KEY_ESCAPE = 4194305
+
+Escape key.
+
+Key KEY_TAB = 4194306
+
+Tab key.
+
+Key KEY_BACKTAB = 4194307
+
+Shift + Tab key.
+
+Key KEY_BACKSPACE = 4194308
+
+Backspace key.
+
+Key KEY_ENTER = 4194309
+
+Return key (on the main keyboard).
+
+Key KEY_KP_ENTER = 4194310
+
+Enter key on the numeric keypad.
+
+Key KEY_INSERT = 4194311
+
+Insert key.
+
+Key KEY_DELETE = 4194312
+
+Delete key.
+
+Key KEY_PAUSE = 4194313
+
+Pause key.
+
+Key KEY_PRINT = 4194314
+
+Print Screen key.
+
+Key KEY_SYSREQ = 4194315
+
+System Request key.
+
+Key KEY_CLEAR = 4194316
+
+Clear key.
+
+Key KEY_HOME = 4194317
+
+Home key.
+
+Key KEY_END = 4194318
+
+End key.
+
+Key KEY_LEFT = 4194319
+
+Left arrow key.
+
+Key KEY_UP = 4194320
+
+Up arrow key.
+
+Key KEY_RIGHT = 4194321
+
+Right arrow key.
+
+Key KEY_DOWN = 4194322
+
+Down arrow key.
+
+Key KEY_PAGEUP = 4194323
+
+Page Up key.
+
+Key KEY_PAGEDOWN = 4194324
+
+Page Down key.
+
+Key KEY_SHIFT = 4194325
+
+Shift key.
+
+Key KEY_CTRL = 4194326
+
+Control key.
+
+Key KEY_META = 4194327
+
+Meta key.
+
+Key KEY_ALT = 4194328
+
+Alt key.
+
+Key KEY_CAPSLOCK = 4194329
+
+Caps Lock key.
+
+Key KEY_NUMLOCK = 4194330
+
+Num Lock key.
+
+Key KEY_SCROLLLOCK = 4194331
+
+Scroll Lock key.
+
+Key KEY_F1 = 4194332
+
+F1 key.
+
+Key KEY_F2 = 4194333
+
+F2 key.
+
+Key KEY_F3 = 4194334
+
+F3 key.
+
+Key KEY_F4 = 4194335
+
+F4 key.
+
+Key KEY_F5 = 4194336
+
+F5 key.
+
+Key KEY_F6 = 4194337
+
+F6 key.
+
+Key KEY_F7 = 4194338
+
+F7 key.
+
+Key KEY_F8 = 4194339
+
+F8 key.
+
+Key KEY_F9 = 4194340
+
+F9 key.
+
+Key KEY_F10 = 4194341
+
+F10 key.
+
+Key KEY_F11 = 4194342
+
+F11 key.
+
+Key KEY_F12 = 4194343
+
+F12 key.
+
+Key KEY_F13 = 4194344
+
+F13 key.
+
+Key KEY_F14 = 4194345
+
+F14 key.
+
+Key KEY_F15 = 4194346
+
+F15 key.
+
+Key KEY_F16 = 4194347
+
+F16 key.
+
+Key KEY_F17 = 4194348
+
+F17 key.
+
+Key KEY_F18 = 4194349
+
+F18 key.
+
+Key KEY_F19 = 4194350
+
+F19 key.
+
+Key KEY_F20 = 4194351
+
+F20 key.
+
+Key KEY_F21 = 4194352
+
+F21 key.
+
+Key KEY_F22 = 4194353
+
+F22 key.
+
+Key KEY_F23 = 4194354
+
+F23 key.
+
+Key KEY_F24 = 4194355
+
+F24 key.
+
+Key KEY_F25 = 4194356
+
+F25 key. Only supported on macOS and Linux due to a Windows limitation.
+
+Key KEY_F26 = 4194357
+
+F26 key. Only supported on macOS and Linux due to a Windows limitation.
+
+Key KEY_F27 = 4194358
+
+F27 key. Only supported on macOS and Linux due to a Windows limitation.
+
+Key KEY_F28 = 4194359
+
+F28 key. Only supported on macOS and Linux due to a Windows limitation.
+
+Key KEY_F29 = 4194360
+
+F29 key. Only supported on macOS and Linux due to a Windows limitation.
+
+Key KEY_F30 = 4194361
+
+F30 key. Only supported on macOS and Linux due to a Windows limitation.
+
+Key KEY_F31 = 4194362
+
+F31 key. Only supported on macOS and Linux due to a Windows limitation.
+
+Key KEY_F32 = 4194363
+
+F32 key. Only supported on macOS and Linux due to a Windows limitation.
+
+Key KEY_F33 = 4194364
+
+F33 key. Only supported on macOS and Linux due to a Windows limitation.
+
+Key KEY_F34 = 4194365
+
+F34 key. Only supported on macOS and Linux due to a Windows limitation.
+
+Key KEY_F35 = 4194366
+
+F35 key. Only supported on macOS and Linux due to a Windows limitation.
+
+Key KEY_KP_MULTIPLY = 4194433
+
+Multiply (*) key on the numeric keypad.
+
+Key KEY_KP_DIVIDE = 4194434
+
+Divide (/) key on the numeric keypad.
+
+Key KEY_KP_SUBTRACT = 4194435
+
+Subtract (-) key on the numeric keypad.
+
+Key KEY_KP_PERIOD = 4194436
+
+Period (.) key on the numeric keypad.
+
+Key KEY_KP_ADD = 4194437
+
+Add (+) key on the numeric keypad.
+
+Key KEY_KP_0 = 4194438
+
+Number 0 on the numeric keypad.
+
+Key KEY_KP_1 = 4194439
+
+Number 1 on the numeric keypad.
+
+Key KEY_KP_2 = 4194440
+
+Number 2 on the numeric keypad.
+
+Key KEY_KP_3 = 4194441
+
+Number 3 on the numeric keypad.
+
+Key KEY_KP_4 = 4194442
+
+Number 4 on the numeric keypad.
+
+Key KEY_KP_5 = 4194443
+
+Number 5 on the numeric keypad.
+
+Key KEY_KP_6 = 4194444
+
+Number 6 on the numeric keypad.
+
+Key KEY_KP_7 = 4194445
+
+Number 7 on the numeric keypad.
+
+Key KEY_KP_8 = 4194446
+
+Number 8 on the numeric keypad.
+
+Key KEY_KP_9 = 4194447
+
+Number 9 on the numeric keypad.
+
+Key KEY_MENU = 4194370
+
+Context menu key.
+
+Key KEY_HYPER = 4194371
+
+Hyper key. (On Linux/X11 only).
+
+Key KEY_HELP = 4194373
+
+Help key.
+
+Key KEY_BACK = 4194376
+
+Media back key. Not to be confused with the Back button on an Android device.
+
+Key KEY_FORWARD = 4194377
+
+Media forward key.
+
+Key KEY_STOP = 4194378
+
+Media stop key.
+
+Key KEY_REFRESH = 4194379
+
+Media refresh key.
+
+Key KEY_VOLUMEDOWN = 4194380
+
+Volume down key.
+
+Key KEY_VOLUMEMUTE = 4194381
+
+Mute volume key.
+
+Key KEY_VOLUMEUP = 4194382
+
+Volume up key.
+
+Key KEY_MEDIAPLAY = 4194388
+
+Media play key.
+
+Key KEY_MEDIASTOP = 4194389
+
+Media stop key.
+
+Key KEY_MEDIAPREVIOUS = 4194390
+
+Previous song key.
+
+Key KEY_MEDIANEXT = 4194391
+
+Next song key.
+
+Key KEY_MEDIARECORD = 4194392
+
+Media record key.
+
+Key KEY_HOMEPAGE = 4194393
+
+Home page key.
+
+Key KEY_FAVORITES = 4194394
+
+Favorites key.
+
+Key KEY_SEARCH = 4194395
+
+Search key.
+
+Key KEY_STANDBY = 4194396
+
+Standby key.
+
+Key KEY_OPENURL = 4194397
+
+Open URL / Launch Browser key.
+
+Key KEY_LAUNCHMAIL = 4194398
+
+Launch Mail key.
+
+Key KEY_LAUNCHMEDIA = 4194399
+
+Launch Media key.
+
+Key KEY_LAUNCH0 = 4194400
+
+Launch Shortcut 0 key.
+
+Key KEY_LAUNCH1 = 4194401
+
+Launch Shortcut 1 key.
+
+Key KEY_LAUNCH2 = 4194402
+
+Launch Shortcut 2 key.
+
+Key KEY_LAUNCH3 = 4194403
+
+Launch Shortcut 3 key.
+
+Key KEY_LAUNCH4 = 4194404
+
+Launch Shortcut 4 key.
+
+Key KEY_LAUNCH5 = 4194405
+
+Launch Shortcut 5 key.
+
+Key KEY_LAUNCH6 = 4194406
+
+Launch Shortcut 6 key.
+
+Key KEY_LAUNCH7 = 4194407
+
+Launch Shortcut 7 key.
+
+Key KEY_LAUNCH8 = 4194408
+
+Launch Shortcut 8 key.
+
+Key KEY_LAUNCH9 = 4194409
+
+Launch Shortcut 9 key.
+
+Key KEY_LAUNCHA = 4194410
+
+Launch Shortcut A key.
+
+Key KEY_LAUNCHB = 4194411
+
+Launch Shortcut B key.
+
+Key KEY_LAUNCHC = 4194412
+
+Launch Shortcut C key.
+
+Key KEY_LAUNCHD = 4194413
+
+Launch Shortcut D key.
+
+Key KEY_LAUNCHE = 4194414
+
+Launch Shortcut E key.
+
+Key KEY_LAUNCHF = 4194415
+
+Launch Shortcut F key.
+
+Key KEY_GLOBE = 4194416
+
+"Globe" key on Mac / iPad keyboard.
+
+Key KEY_KEYBOARD = 4194417
+
+"On-screen keyboard" key on iPad keyboard.
+
+Key KEY_JIS_EISU = 4194418
+
+英数 key on Mac keyboard.
+
+Key KEY_JIS_KANA = 4194419
+
+かな key on Mac keyboard.
+
+Key KEY_UNKNOWN = 8388607
+
+Unknown key.
+
+Key KEY_SPACE = 32
+
+Space key.
+
+Key KEY_EXCLAM = 33
+
+! key.
+
+Key KEY_QUOTEDBL = 34
+
+" key.
+
+Key KEY_NUMBERSIGN = 35
+
+# key.
+
+Key KEY_DOLLAR = 36
+
+$ key.
+
+Key KEY_PERCENT = 37
+
+% key.
+
+Key KEY_AMPERSAND = 38
+
+& key.
+
+Key KEY_APOSTROPHE = 39
+
+' key.
+
+Key KEY_PARENLEFT = 40
+
+( key.
+
+Key KEY_PARENRIGHT = 41
+
+) key.
+
+Key KEY_ASTERISK = 42
+
+* key.
+
+Key KEY_PLUS = 43
+
+    key.
+
+Key KEY_COMMA = 44
+
+, key.
+
+Key KEY_MINUS = 45
+
+    key.
+
+Key KEY_PERIOD = 46
+
+. key.
+
+Key KEY_SLASH = 47
+
+/ key.
+
+Key KEY_0 = 48
+
+Number 0 key.
+
+Key KEY_1 = 49
+
+Number 1 key.
+
+Key KEY_2 = 50
+
+Number 2 key.
+
+Key KEY_3 = 51
+
+Number 3 key.
+
+Key KEY_4 = 52
+
+Number 4 key.
+
+Key KEY_5 = 53
+
+Number 5 key.
+
+Key KEY_6 = 54
+
+Number 6 key.
+
+Key KEY_7 = 55
+
+Number 7 key.
+
+Key KEY_8 = 56
+
+Number 8 key.
+
+Key KEY_9 = 57
+
+Number 9 key.
+
+Key KEY_COLON = 58
+
+: key.
+
+Key KEY_SEMICOLON = 59
+
+; key.
+
+Key KEY_LESS = 60
+
+< key.
+
+Key KEY_EQUAL = 61
+
+= key.
+
+Key KEY_GREATER = 62
+
+> key.
+
+Key KEY_QUESTION = 63
+
+? key.
+
+Key KEY_AT = 64
+
+@ key.
+
+Key KEY_A = 65
+
+A key.
+
+Key KEY_B = 66
+
+B key.
+
+Key KEY_C = 67
+
+C key.
+
+Key KEY_D = 68
+
+D key.
+
+Key KEY_E = 69
+
+E key.
+
+Key KEY_F = 70
+
+F key.
+
+Key KEY_G = 71
+
+G key.
+
+Key KEY_H = 72
+
+H key.
+
+Key KEY_I = 73
+
+I key.
+
+Key KEY_J = 74
+
+J key.
+
+Key KEY_K = 75
+
+K key.
+
+Key KEY_L = 76
+
+L key.
+
+Key KEY_M = 77
+
+M key.
+
+Key KEY_N = 78
+
+N key.
+
+Key KEY_O = 79
+
+O key.
+
+Key KEY_P = 80
+
+P key.
+
+Key KEY_Q = 81
+
+Q key.
+
+Key KEY_R = 82
+
+R key.
+
+Key KEY_S = 83
+
+S key.
+
+Key KEY_T = 84
+
+T key.
+
+Key KEY_U = 85
+
+U key.
+
+Key KEY_V = 86
+
+V key.
+
+Key KEY_W = 87
+
+W key.
+
+Key KEY_X = 88
+
+X key.
+
+Key KEY_Y = 89
+
+Y key.
+
+Key KEY_Z = 90
+
+Z key.
+
+Key KEY_BRACKETLEFT = 91
+
+[ key.
+
+Key KEY_BACKSLASH = 92
+
+\ key.
+
+Key KEY_BRACKETRIGHT = 93
+
+] key.
+
+Key KEY_ASCIICIRCUM = 94
+
+^ key.
+
+Key KEY_UNDERSCORE = 95
+
+_ key.
+
+Key KEY_QUOTELEFT = 96
+
+` key.
+
+Key KEY_BRACELEFT = 123
+
+{ key.
+
+Key KEY_BAR = 124
+key.
+
+Key KEY_BRACERIGHT = 125
+
+} key.
+
+Key KEY_ASCIITILDE = 126
+
+~ key.
+
+Key KEY_YEN = 165
+
+¥ key.
+
+Key KEY_SECTION = 167
+
+§ key.

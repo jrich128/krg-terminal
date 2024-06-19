@@ -1,44 +1,44 @@
 [gd_resource type="Theme" load_steps=12 format=3 uid="uid://cnqv5ub2wj0ud"]
 
 [ext_resource type="StyleBox" uid="uid://b7bgt65o6evp0" path="res://addons/terminal/sb_sugg_focus.tres" id="1_arld4"]
-[ext_resource type="FontFile" uid="uid://cttmxkl2selie" path="res://common/fonts/source_code_pro/scp-Regular.ttf" id="1_xxugf"]
 [ext_resource type="StyleBox" uid="uid://b7grri47dcnjh" path="res://addons/terminal/sb_sugg_normal.tres" id="2_axsim"]
 [ext_resource type="StyleBox" uid="uid://crui5m1baup87" path="res://addons/terminal/stylebox_console_input.tres" id="2_rcpmm"]
-[ext_resource type="FontFile" uid="uid://cbeyjj6tq3bbg" path="res://common/fonts/frag_mono/frag_mono_regular.ttf" id="3_pwdg2"]
-[ext_resource type="FontFile" uid="uid://ceg6fxkr4s1yk" path="res://common/fonts/source_code_pro/scp-ExtraBold.ttf" id="3_yoyyf"]
-[ext_resource type="FontFile" uid="uid://diusd6a7pxkpb" path="res://common/fonts/source_code_pro/scp-ExtraBoldItalic.ttf" id="4_xxpxb"]
-[ext_resource type="FontFile" uid="uid://bhb2rg7sd84xm" path="res://common/fonts/source_code_pro/scp-SemiBoldItalic.ttf" id="5_rwknx"]
-[ext_resource type="FontFile" uid="uid://jcpd8osjg3gi" path="res://common/fonts/source_code_pro/scp-SemiBold.ttf" id="6_5j1pb"]
+[ext_resource type="FontFile" uid="uid://cttmxkl2selie" path="res://addons/terminal/source_code_pro/scp-Regular.ttf" id="3_ucnpj"]
+[ext_resource type="FontFile" uid="uid://ceg6fxkr4s1yk" path="res://addons/terminal/source_code_pro/scp-ExtraBold.ttf" id="5_vdmdq"]
+[ext_resource type="FontFile" uid="uid://diusd6a7pxkpb" path="res://addons/terminal/source_code_pro/scp-ExtraBoldItalic.ttf" id="6_xuyfw"]
 [ext_resource type="StyleBox" uid="uid://djbfx82cifgly" path="res://addons/terminal/stylebox_output.tres" id="7_kmxna"]
+[ext_resource type="FontFile" uid="uid://bhb2rg7sd84xm" path="res://addons/terminal/source_code_pro/scp-SemiBoldItalic.ttf" id="7_po2gf"]
+[ext_resource type="FontFile" uid="uid://jcpd8osjg3gi" path="res://addons/terminal/source_code_pro/scp-SemiBold.ttf" id="8_1cbdo"]
+[ext_resource type="FontFile" uid="uid://cbeyjj6tq3bbg" path="res://addons/terminal/frag_mono/frag_mono_regular.ttf" id="10_o1jbd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mtpld"]
 bg_color = Color(0.121569, 0.121569, 0.121569, 0.784314)
 border_color = Color(0.458824, 0.458824, 0.458824, 1)
 
 [resource]
-default_font = ExtResource("3_pwdg2")
+default_font = ExtResource("10_o1jbd")
 default_font_size = 27
 Button/font_sizes/font_size = 24
 Button/styles/focus = ExtResource("1_arld4")
 Button/styles/hover = ExtResource("1_arld4")
 Button/styles/normal = ExtResource("2_axsim")
 LineEdit/font_sizes/font_size = 24
-LineEdit/fonts/font = ExtResource("1_xxugf")
+LineEdit/fonts/font = ExtResource("3_ucnpj")
 LineEdit/styles/focus = ExtResource("2_rcpmm")
 LineEdit/styles/normal = ExtResource("2_rcpmm")
 Panel/styles/panel = SubResource("StyleBoxFlat_mtpld")
-RichTextLabel/fonts/bold_font = ExtResource("3_yoyyf")
-RichTextLabel/fonts/bold_italics_font = ExtResource("4_xxpxb")
-RichTextLabel/fonts/italics_font = ExtResource("5_rwknx")
-RichTextLabel/fonts/mono_font = ExtResource("6_5j1pb")
-RichTextLabel/fonts/normal_font = ExtResource("6_5j1pb")
+RichTextLabel/fonts/bold_font = ExtResource("5_vdmdq")
+RichTextLabel/fonts/bold_italics_font = ExtResource("6_xuyfw")
+RichTextLabel/fonts/italics_font = ExtResource("7_po2gf")
+RichTextLabel/fonts/mono_font = ExtResource("8_1cbdo")
+RichTextLabel/fonts/normal_font = ExtResource("8_1cbdo")
 RichTextLabel/styles/focus = ExtResource("7_kmxna")
 RichTextLabel/styles/normal = ExtResource("7_kmxna")
 TextEdit/colors/font_outline_color = Color(0, 0, 0, 1)
 TextEdit/colors/font_readonly_color = Color(1, 1, 1, 1)
 TextEdit/constants/outline_size = 1
 TextEdit/font_sizes/font_size = 24
-TextEdit/fonts/font = ExtResource("1_xxugf")
+TextEdit/fonts/font = ExtResource("3_ucnpj")
 TextEdit/styles/focus = ExtResource("2_rcpmm")
 TextEdit/styles/normal = ExtResource("2_rcpmm")
 TextEdit/styles/read_only = ExtResource("2_rcpmm")

@@ -243,7 +243,7 @@ public partial class Terminal : Control
 
             if(@event.IsActionPressed(bind.ActionName)){
                 Execute(bind.Command);
-                GD.Print($"Bind: {bind.Command}, Action: {bind.ActionName}");
+                //GD.Print($"Bind: {bind.Command}, Action: {bind.ActionName}");
                 _viewport.SetInputAsHandled();
                 return;
             }
@@ -552,6 +552,7 @@ public partial class Terminal : Control
     
     TerminalReturn ClearBinds(string args)
     {
+        //TODO:InputMap.EraseAction
         throw new NotImplementedException();
     }
 
@@ -575,9 +576,8 @@ public partial class Terminal : Control
             return new TerminalReturn(false, "Syntax is: bind <key> <command>");
         }
         
-        string key       = argsSplit[1];
-        string command   = argsSplit[2];
-        //string serialize 
+        string key     = argsSplit[1];
+        string command = argsSplit[2];
  
         // Check command is valid
         if(!_commands.TryGetValue(command, out _)){
@@ -589,20 +589,17 @@ public partial class Terminal : Control
         bind.ActionName = $"bind_{_binds.Count}";
         InputMap.AddAction(bind.ActionName);
 
-        // TODO: Support for non-alphabet keys 
         InputEventKey bindInputEvent = new InputEventKey(); 
-        bindInputEvent.Keycode = (Godot.Key)((argsSplit[1][0]) - 32); // Subtract 32 to go from lower case to uppercase ASCII, or is this Unicode? Fuck if I know
-        //GD.Print(bindInputEvent.AsTextKeycode());
+        bindInputEvent.Keycode = OS.FindKeycodeFromString(key); //(Godot.Key)((argsSplit[1][0]) - 32); // Subtract 32 to go from lower case to uppercase ASCII, or is this Unicode? Fuck if I know
+        if(bindInputEvent.Keycode == Key.None){
+            return new TerminalReturn(false, $"Unrecognized key '{key}', check 'bind_keycode_ref.txt' for valid names.");
+        }
         InputMap.ActionAddEvent(bind.ActionName, bindInputEvent);
         
-        // TODO:InputMap.EraseAction
-        //GD.Print(command);
         bind.Command = command;
-        
         _binds.Add(bind);
-        //SaveBinds();
 
-        return new TerminalReturn(true, $"'{command}' bound to '{argsSplit[1][0]}'");
+        return new TerminalReturn(true, $"'{command}' bound to '{key}'");
     }
 
     TerminalReturn RunCfg(string args)
