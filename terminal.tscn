@@ -1,0 +1,132 @@
+[gd_scene load_steps=6 format=3 uid="uid://cym1ckx5bq6ic"]
+
+[ext_resource type="Script" path="res://addons/terminal/Terminal.cs" id="2_bc6xk"]
+[ext_resource type="Theme" uid="uid://cnqv5ub2wj0ud" path="res://addons/terminal/theme_console.tres" id="2_mwurq"]
+
+[sub_resource type="Animation" id="Animation_s8ntp"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_5xvop"]
+resource_name = "open"
+length = 0.05
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.05),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, -190), Vector2(0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_xiapk"]
+_data = {
+"RESET": SubResource("Animation_s8ntp"),
+"open": SubResource("Animation_5xvop")
+}
+
+[node name="terminal" type="Panel"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 218.0
+grow_horizontal = 2
+theme = ExtResource("2_mwurq")
+script = ExtResource("2_bc6xk")
+
+[node name="margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="vbox" type="VBoxContainer" parent="margin"]
+layout_mode = 2
+theme = ExtResource("2_mwurq")
+
+[node name="output" type="RichTextLabel" parent="margin/vbox"]
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 2
+bbcode_enabled = true
+selection_enabled = true
+
+[node name="input" type="LineEdit" parent="margin/vbox"]
+layout_mode = 2
+theme = ExtResource("2_mwurq")
+max_length = 50
+caret_blink = true
+
+[node name="sug_buttons" type="VBoxContainer" parent="margin/vbox/input"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.216
+anchor_right = 0.225
+anchor_bottom = 14.65
+offset_top = 26.235
+offset_right = -62.95
+offset_bottom = 0.495026
+grow_vertical = 0
+theme_override_constants/separation = 0
+
+[node name="sug_0" type="Button" parent="margin/vbox/input/sug_buttons"]
+visible = false
+layout_mode = 2
+text = "set fov 90"
+alignment = 0
+
+[node name="sug_1" type="Button" parent="margin/vbox/input/sug_buttons"]
+visible = false
+layout_mode = 2
+text = "echo my nuts"
+alignment = 0
+
+[node name="sug_2" type="Button" parent="margin/vbox/input/sug_buttons"]
+visible = false
+layout_mode = 2
+text = "echo my nuts"
+alignment = 0
+
+[node name="sug_3" type="Button" parent="margin/vbox/input/sug_buttons"]
+visible = false
+layout_mode = 2
+text = "echo my nuts"
+alignment = 0
+
+[node name="sug_4" type="Button" parent="margin/vbox/input/sug_buttons"]
+visible = false
+layout_mode = 2
+text = "echo my nuts"
+alignment = 0
+
+[node name="sug_5" type="Button" parent="margin/vbox/input/sug_buttons"]
+visible = false
+layout_mode = 2
+text = "echo my nuts"
+alignment = 0
+
+[node name="animation_player" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_xiapk")
+}
