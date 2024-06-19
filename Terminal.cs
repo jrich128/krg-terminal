@@ -102,7 +102,7 @@ public struct TerminalCommand
     Italic    = 1 << 0,
     Bold      = 1 << 1,
     Underline = 1 << 2,
-    Error     = Italic | Bold | Underline
+    Error     = Bold | Underline
 }
 
 /// <summary>
@@ -139,10 +139,10 @@ public partial class Terminal : Control
         // This mess allows PrintF to have a default for color.
         // Using Godot's built-in colors is too much of pain
         {TColor.White, Colors.White},
-        {TColor.Black, new Color(0.1f, 0.1f, 0.1f)  },
-        {TColor.Red  , new Color(0.5f, 0.0f, 0.0f)  },
-        {TColor.Green, new Color(0.47f, 0.6f, 0.13f)},
-        {TColor.Blue,  new Color(0.0f, 0.0f, 0.51f) }
+        {TColor.Black, new Color(0.1f , 0.1f, 0.1f )},
+        {TColor.Red  , new Color(0.65f, 0.15f,0.15f)},
+        {TColor.Green, new Color(0.57f, 0.7f, 0.23f)},
+        {TColor.Blue,  new Color(0.0f , 0.0f, 0.51f)}
     };
 
     List<Bind> _binds = new List<Bind>();
@@ -576,30 +576,32 @@ public partial class Terminal : Control
             return new TerminalReturn(false, "Syntax is: bind <key> <command>");
         }
         
-        string key     = argsSplit[1];
-        string command = argsSplit[2];
+        string keyName     = argsSplit[1];
+        string commandName = argsSplit[2];
+        string command = args.Remove(0, argsSplit[0].Length + argsSplit[1].Length + 2);//       argsSplit[2];
  
         // Check command is valid
-        if(!_commands.TryGetValue(command, out _)){
-            return new TerminalReturn(false, $"'{command}' Unknown command.");
+        if(!_commands.TryGetValue(commandName, out _)){
+            return new TerminalReturn(false, $"'{commandName}' Unknown command.");
+        }
+        // Check if keycode string is valid
+        Key key = OS.FindKeycodeFromString(keyName.Replace('_', ' ')); // Whitespace? FFS
+        if(key == Key.None){
+            return new TerminalReturn(false, $"Unrecognized key '{keyName}', check 'bind_keycode_ref.txt' for valid names.");
         }
 
         Bind bind = new Bind();
         bind.BindCommand = args;
-        bind.ActionName = $"bind_{_binds.Count}";
-        InputMap.AddAction(bind.ActionName);
+        bind.ActionName  = $"bind_{_binds.Count}";
+        bind.Command     = command;
 
-        InputEventKey bindInputEvent = new InputEventKey(); 
-        bindInputEvent.Keycode = OS.FindKeycodeFromString(key); //(Godot.Key)((argsSplit[1][0]) - 32); // Subtract 32 to go from lower case to uppercase ASCII, or is this Unicode? Fuck if I know
-        if(bindInputEvent.Keycode == Key.None){
-            return new TerminalReturn(false, $"Unrecognized key '{key}', check 'bind_keycode_ref.txt' for valid names.");
-        }
-        InputMap.ActionAddEvent(bind.ActionName, bindInputEvent);
+        InputMap.AddAction(bind.ActionName);
+        InputEventKey inputEvent = new InputEventKey() {Keycode = key}; 
+        InputMap.ActionAddEvent(bind.ActionName, inputEvent);
         
-        bind.Command = command;
         _binds.Add(bind);
 
-        return new TerminalReturn(true, $"'{command}' bound to '{key}'");
+        return new TerminalReturn(true, $"'{command}' bound to '{keyName}'");
     }
 
     TerminalReturn RunCfg(string args)
