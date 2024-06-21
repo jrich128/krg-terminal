@@ -2,26 +2,31 @@ using Godot;
 using System;
 using System.IO;
 using System.Collections.Generic;
-using FileAccess = Godot.FileAccess;
+using FileAccess = Godot.FileAccess; // We want to use Godot's not .net's
 using System.Linq;
 
+/// <summary>
+/// Container for extension methods 
+/// </summary>
 public static class Extension
 {
     /// <summary>
-    /// Sequential similarity from 0.0f to 1.0f
+    /// Sequential similarity from 0.0f to 1.0f 
     /// </summary>
     public static float Similarity(this string a, string b)
     {
-        float sim = 0;
+        // We loop checking the char's until we hit a non-match
+        // We return NumberOfMatchingChars /
+        float matchingCharCount = 0; 
         for(int i = 0; i < Mathf.Min(a.Length, b.Length); i++)
         {   
             if(a[i] != b[i]){
                 break;
             }
-            sim += 1.0f;
+            matchingCharCount += 1.0f;
         }
 
-        return (sim / (a.Length+b.Length)) * 2.0f;
+        return (matchingCharCount / (a.Length+b.Length)) * 2.0f;
     }
 }
 
@@ -94,7 +99,7 @@ public struct TerminalCommand
 }
 
 /// <summary>
-/// BBCode text style effects 
+/// BBCode text style effects; Not all implemented yet!
 /// </summary>
 [Flags] public enum TStyleFlag
 {
@@ -190,8 +195,7 @@ public partial class Terminal : Control
             return;
         }
 
-        for(int i = 0; i < SuggestionCount; i++)
-        {
+        for(int i = 0; i < SuggestionCount; i++){
             _suggs[i] = GetNode<Button>($"margin/vbox/input/sug_buttons/sug_{i}");
             _suggs[i].Connect("pressed", new Callable(this, "SuggestionClicked"));
             _suggs[i].Text = "NULL";
@@ -325,7 +329,7 @@ public partial class Terminal : Control
 
     void SaveBinds()
     {
-        using(var file = Godot.FileAccess.Open(BINDS_PATH, FileAccess.ModeFlags.ReadWrite))
+        using(var file = Godot.FileAccess.Open(BINDS_PATH, FileAccess.ModeFlags.WriteRead))
         {
             string[] lines = file.GetAsText(true).Split('\n');
 
@@ -336,7 +340,6 @@ public partial class Terminal : Control
                 file.StoreLine(_binds[i].BindCommand);
             }
         }
-        //GD.Print("Binds saved.");
     }
 
     void LoadBinds()
