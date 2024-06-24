@@ -5,10 +5,25 @@ using System.Collections.Generic;
 using FileAccess = Godot.FileAccess; // We want to use Godot's not .net's
 using System.Linq;
 
+/*
+    TODO:
+        FIX BINDS. Them consuming input means that if you bind a key
+        that is already used by another action, it will be overwritten
+
+        We'll need to make some kind of system to either give precidence
+        or not let already occupied keys be bound
+
+        - Ability to give commands their own autocomplete dictionaries
+        for their args.
+            -Implement TerminalCommand.ArgAutocomplete
+
+        - Clear binds command
+*/ 
+
 /// <summary>
 /// Container for extension methods 
 /// </summary>
-public static class Extension
+public static partial class Extension
 {
     /// <summary>
     /// Sequential similarity from 0.0f to 1.0f 
@@ -16,7 +31,6 @@ public static class Extension
     public static float Similarity(this string a, string b)
     {
         // We loop checking the char's until we hit a non-match
-        // We return NumberOfMatchingChars /
         float matchingCharCount = 0; 
         for(int i = 0; i < Mathf.Min(a.Length, b.Length); i++)
         {   
@@ -45,27 +59,6 @@ struct Bind
     }
 }
 
-public struct TerminalVar
-{
-    GodotObject _obj;
-    Variant.Type _type; 
-    string _name;
-
-    public bool Set(Variant value)
-    {
-        if(value.VariantType != _type){
-            return false;
-        }
-        _obj.Set(_name, value);
-        return true;
-    }
-    public Variant? Value()
-    {
-        Variant value = _obj.Get(_name);
-        return value;
-    }
-}
-
 /// <summary>
 /// Data returned from a <c>TerminalFunction</c> 
 /// </summary>
@@ -88,7 +81,9 @@ public delegate TerminalReturn TerminalFunction(string args);
 public struct TerminalCommand
 {
     public string Key = "";
+
     public int ArgCount = 0; // 0 = Varible amount
+
     public TerminalFunction Function;
     public string HelpText = ""; 
     
@@ -123,9 +118,6 @@ public enum TColor
     Blue
 }
 
-/* TODO:
-    - Clear binds command
-*/
 
 public partial class Terminal : Control
 {
@@ -135,10 +127,13 @@ public partial class Terminal : Control
     const string BINDS_PATH   = $"{CFG_DIR}/binds.cfg";
     const string AUTORUN_PATH = $"{CFG_DIR}/autorun.cfg";
     static string CfgPath(string name) => $"{CFG_DIR}/{name}.cfg";
-
-    Dictionary<string, TerminalVar>     _vars     = new Dictionary<string, TerminalVar>();
+    
     Dictionary<string, TerminalCommand> _commands = new Dictionary<string, TerminalCommand>();
-    static Dictionary<TColor, Color>    _color    = new Dictionary<TColor, Color>()
+    
+    // A dictionary for each string arg type Ex. command, mapname 
+    Dictionary<string, string[]> _autoCompleteDics = new Dictionary<string, string[]>();
+
+    static Dictionary<TColor, Color> _color = new Dictionary<TColor, Color>()
     {
         // This mess allows PrintF to have a default for color.
         // Using Godot's built-in colors is too much of pain
@@ -234,8 +229,6 @@ public partial class Terminal : Control
         AddCommand("log" , 
         new TerminalCommand("log", 0, ShowLog, "'log' Prints command history to output log"));
 
-        AddVar("cling", new TerminalVar(){});
-
         Execute("run autorun");
 
         LoadBinds();
@@ -253,7 +246,7 @@ public partial class Terminal : Control
             if(@event.IsActionPressed(bind.ActionName)){
                 Execute(bind.Command);
                 //GD.Print($"Bind: {bind.Command}, Action: {bind.ActionName}");
-                _viewport.SetInputAsHandled();
+                //_viewport.SetInputAsHandled();
                 return;
             }
         }
@@ -356,11 +349,6 @@ public partial class Terminal : Control
                 CreateBind(lines[_binds.Count]);
             }
         }
-    }
-
-    public void AddVar(string key, TerminalVar var)
-    {
-        _vars.Add(key, var);
     }
 
     public void AddCommand(string key, TerminalCommand command)
@@ -485,11 +473,10 @@ public partial class Terminal : Control
 
         string[] commandMatches = Matches(_input.Text, _commands.Keys.ToArray());
         //string[] varMatches     = PossibleMatches(_input.Text, _vars.Keys.ToArray());
-        string[] finalSet = commandMatches;//.Concat(varMatches).ToArray();
+        string[] finalSet = commandMatches; //.Concat(varMatches).ToArray();
 
         // Show matches in suggestion buttons under input line edit
-        for(int i = 0; i < commandMatches.Length && i < SuggestionCount; i++)
-        {
+        for(int i = 0; i < commandMatches.Length && i < SuggestionCount; i++){
             _suggs[i].Text = finalSet[i];
             _suggs[i].Visible = true;
         }

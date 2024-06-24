@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://jcpd8osjg3gi"
-path="res://.godot/imported/scp-SemiBold.ttf-2b2ef98240a0b06d3813d7b960fa400c.fontdata"
+path="res://.godot/imported/scp-SemiBold.ttf-eb933556e1dd829739ccaf44a790a0da.fontdata"
 
 [deps]
 
-source_file="res://addons/terminal/source_code_pro/scp-SemiBold.ttf"
-dest_files=["res://.godot/imported/scp-SemiBold.ttf-2b2ef98240a0b06d3813d7b960fa400c.fontdata"]
+source_file="res://addons/krg-terminal/source_code_pro/scp-SemiBold.ttf"
+dest_files=["res://.godot/imported/scp-SemiBold.ttf-eb933556e1dd829739ccaf44a790a0da.fontdata"]
 
 [params]
 

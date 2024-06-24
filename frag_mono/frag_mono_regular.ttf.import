@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://cbeyjj6tq3bbg"
-path="res://.godot/imported/frag_mono_regular.ttf-76c1fd056769a3ff2b59428b059e594d.fontdata"
+path="res://.godot/imported/frag_mono_regular.ttf-1eb0695237b676a55dc03a369b9be4c7.fontdata"
 
 [deps]
 
-source_file="res://addons/terminal/frag_mono/frag_mono_regular.ttf"
-dest_files=["res://.godot/imported/frag_mono_regular.ttf-76c1fd056769a3ff2b59428b059e594d.fontdata"]
+source_file="res://addons/krg-terminal/frag_mono/frag_mono_regular.ttf"
+dest_files=["res://.godot/imported/frag_mono_regular.ttf-1eb0695237b676a55dc03a369b9be4c7.fontdata"]
 
 [params]
 

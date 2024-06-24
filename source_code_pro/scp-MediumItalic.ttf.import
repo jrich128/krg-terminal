@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://bncrmpfobmk4t"
-path="res://.godot/imported/scp-MediumItalic.ttf-541147d245ff366e605ee10153f1bb5e.fontdata"
+path="res://.godot/imported/scp-MediumItalic.ttf-95d97cc5d34cbd9e2cb2d00dd5814aa4.fontdata"
 
 [deps]
 
-source_file="res://addons/terminal/source_code_pro/scp-MediumItalic.ttf"
-dest_files=["res://.godot/imported/scp-MediumItalic.ttf-541147d245ff366e605ee10153f1bb5e.fontdata"]
+source_file="res://addons/krg-terminal/source_code_pro/scp-MediumItalic.ttf"
+dest_files=["res://.godot/imported/scp-MediumItalic.ttf-95d97cc5d34cbd9e2cb2d00dd5814aa4.fontdata"]
 
 [params]
 

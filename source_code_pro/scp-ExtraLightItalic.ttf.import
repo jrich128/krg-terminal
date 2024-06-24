@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://b57vmidckjpju"
-path="res://.godot/imported/scp-ExtraLightItalic.ttf-60b802d8d7067eed2870dfadf563bc87.fontdata"
+path="res://.godot/imported/scp-ExtraLightItalic.ttf-8884e732a08fa9b28cb7be0617126aff.fontdata"
 
 [deps]
 
-source_file="res://addons/terminal/source_code_pro/scp-ExtraLightItalic.ttf"
-dest_files=["res://.godot/imported/scp-ExtraLightItalic.ttf-60b802d8d7067eed2870dfadf563bc87.fontdata"]
+source_file="res://addons/krg-terminal/source_code_pro/scp-ExtraLightItalic.ttf"
+dest_files=["res://.godot/imported/scp-ExtraLightItalic.ttf-8884e732a08fa9b28cb7be0617126aff.fontdata"]
 
 [params]
 
