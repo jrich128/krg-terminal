@@ -6,15 +6,16 @@ using System;
 public partial class TerminalPlugin : EditorPlugin
 {
 	// I made a bigggg fuck here: DONT USE CONST!
-	// Godot caches them somewhere somehow & will not update them if/when something goes wrong
-	// GOOD LUCK TRACKING DOWN THAT ERROR!
+	// Godot will cache them if it feels like it & they will 
+	// refuse to update unless you change the varible name.
+	// GOOD LUCK TRACKING DOWN THAT ERROR! I had a fun time -_-
 	const string Dir             = "addons/krg-terminal";
-	const string TERMINAL_SCRIPT = "Terminal.cs";
-	const string TERMINAL_ICON   = "icon.png";
+	const string TerminalScript = "Terminal.cs";
+	const string TerminalIcon   = "icon.png";
 	static string Path(string fileName) => $"{Dir}/{fileName}";
 	
-	const string TYPE_NAME = "Terminal";
-		
+	const string TypeName = "Terminal";
+
 
 	public override void _EnterTree()
 	{
@@ -23,13 +24,13 @@ public partial class TerminalPlugin : EditorPlugin
 			return;
         }
 		
-		string iconPath = Path(TERMINAL_ICON);
+		string iconPath = Path(TerminalIcon);
 		if(!Godot.FileAccess.FileExists(iconPath)){
 			GD.PrintErr($"Plugin 'terminal' failed to load.\nFile not found '{iconPath}'");
 			return;
 		}
 
-		string scriptPath = Path(TERMINAL_SCRIPT);
+		string scriptPath = Path(TerminalScript);
 		if(!Godot.FileAccess.FileExists(scriptPath)){
 			GD.PrintErr($"Plugin 'terminal' failed to load.\nFile not found '{scriptPath}'");
 			return;
@@ -38,12 +39,12 @@ public partial class TerminalPlugin : EditorPlugin
 		var icon   = ResourceLoader.Load<Texture2D>(iconPath);
 		var script = ResourceLoader.Load<Script>(scriptPath);
 		
-		AddCustomType(TYPE_NAME, "Control", script, icon);
+		AddCustomType(TypeName, "Control", script, icon);
 	}
 
 	public override void _ExitTree()
 	{
-		RemoveCustomType(TYPE_NAME);
+		RemoveCustomType(TypeName);
 	}
 }
 #endif

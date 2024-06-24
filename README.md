@@ -18,9 +18,29 @@ A simple, easily extensible, Quake-esque developer terminal for Godot in C#
 You should be ready
 
 ## Creating your own commands
-1. Write a function that returns <code>TerminalReturn</code> & takes a <code>string</code> parameter. Ex: <code>TerminalReturn Clear(string args)</code>
-2. Create a <code>TerminalCommand</code> struct instance, filling the constructor with: name, number of arguments, the TerminalReturn function you wrote, and help text
+1. Write a function that returns <code>TerminalReturn</code> & takes a <code>string</code> parameter. 
+```
+    TerminalReturn YourTFunction(string args)
+    {
+        return new TerminalReturn(true, "I am doing nothing right now!");
+    }
+```
+2. Create a <code>TerminalCommand</code> struct instance, fill it out with either constructor or initializer 
+```
+    var yourCommand = new TerminalCommand()
+    {
+        Key      = "test",
+        ArgCount = 1,
+        Function = YourTFunction,
+        HelpText = "Just testing"
+    };
+
+    _terminal.AddCommand(yourCommand.Key, yourCommand);
+```
 3. Call Terminal.AddCommand(), passing it your Terminal Command struct
+```
+    _terminal.AddCommand(yourCommand.Key, yourCommand);
+```
 
 Look at the built-in commands in Terminal.cs for reference
 
