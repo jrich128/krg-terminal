@@ -81,7 +81,7 @@ caret_blink = true
 [node name="sug_buttons" type="VBoxContainer" parent="margin/vbox/input"]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.216
+anchor_top = 0.099
 anchor_right = 0.225
 anchor_bottom = 14.65
 offset_top = 26.235
@@ -91,39 +91,33 @@ grow_vertical = 0
 theme_override_constants/separation = 0
 
 [node name="sug_0" type="Button" parent="margin/vbox/input/sug_buttons"]
-visible = false
 layout_mode = 2
-text = "set fov 90"
+text = "clear"
 alignment = 0
 
 [node name="sug_1" type="Button" parent="margin/vbox/input/sug_buttons"]
 visible = false
 layout_mode = 2
-text = "echo my nuts"
 alignment = 0
 
 [node name="sug_2" type="Button" parent="margin/vbox/input/sug_buttons"]
 visible = false
 layout_mode = 2
-text = "echo my nuts"
 alignment = 0
 
 [node name="sug_3" type="Button" parent="margin/vbox/input/sug_buttons"]
 visible = false
 layout_mode = 2
-text = "echo my nuts"
 alignment = 0
 
 [node name="sug_4" type="Button" parent="margin/vbox/input/sug_buttons"]
 visible = false
 layout_mode = 2
-text = "echo my nuts"
 alignment = 0
 
 [node name="sug_5" type="Button" parent="margin/vbox/input/sug_buttons"]
 visible = false
 layout_mode = 2
-text = "echo my nuts"
 alignment = 0
 
 [node name="animation_player" type="AnimationPlayer" parent="."]

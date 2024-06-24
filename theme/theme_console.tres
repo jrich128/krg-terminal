@@ -1,44 +1,42 @@
 [gd_resource type="Theme" load_steps=12 format=3 uid="uid://cnqv5ub2wj0ud"]
 
-[ext_resource type="StyleBox" uid="uid://b7bgt65o6evp0" path="res://addons/krg-terminal/theme/sb_sugg_focus.tres" id="1_arld4"]
-[ext_resource type="StyleBox" uid="uid://b7grri47dcnjh" path="res://addons/krg-terminal/theme/sb_sugg_normal.tres" id="2_axsim"]
-[ext_resource type="StyleBox" uid="uid://crui5m1baup87" path="res://addons/krg-terminal/theme/stylebox_console_input.tres" id="2_rcpmm"]
-[ext_resource type="FontFile" uid="uid://cttmxkl2selie" path="res://common/fonts/source_code_pro/scp-Regular.ttf" id="3_ucnpj"]
-[ext_resource type="FontFile" uid="uid://cttmxkl2selie" path="res://common/fonts/source_code_pro/scp-Regular.ttf" id="3_wfeo4"]
-[ext_resource type="FontFile" uid="uid://cbhy5fn1ul1uw" path="res://common/fonts/source_code_pro/scp-Bold.ttf" id="5_w0tb4"]
-[ext_resource type="FontFile" uid="uid://be81pshquqroe" path="res://common/fonts/source_code_pro/scp-BoldItalic.ttf" id="6_qubf2"]
-[ext_resource type="FontFile" uid="uid://busbt7m8f7xlc" path="res://common/fonts/source_code_pro/scp-Italic.ttf" id="7_a5c07"]
-[ext_resource type="StyleBox" uid="uid://djbfx82cifgly" path="res://addons/krg-terminal/theme/stylebox_output.tres" id="7_kmxna"]
-[ext_resource type="FontFile" uid="uid://cbeyjj6tq3bbg" path="res://common/fonts/frag_mono/frag_mono_regular.ttf" id="10_w1rne"]
+[ext_resource type="FontFile" uid="uid://cttmxkl2selie" path="res://addons/krg-terminal/theme/font/source_code_pro/scp-Regular.ttf" id="1_ujulq"]
+[ext_resource type="StyleBox" uid="uid://b7bgt65o6evp0" path="res://addons/krg-terminal/theme/sb_sugg_focus.tres" id="2_f036o"]
+[ext_resource type="StyleBox" uid="uid://b7grri47dcnjh" path="res://addons/krg-terminal/theme/sb_sugg_normal.tres" id="3_ishan"]
+[ext_resource type="StyleBox" uid="uid://crui5m1baup87" path="res://addons/krg-terminal/theme/stylebox_console_input.tres" id="4_iyw3k"]
+[ext_resource type="FontFile" uid="uid://cbhy5fn1ul1uw" path="res://addons/krg-terminal/theme/font/source_code_pro/scp-Bold.ttf" id="5_y6qtv"]
+[ext_resource type="FontFile" uid="uid://be81pshquqroe" path="res://addons/krg-terminal/theme/font/source_code_pro/scp-BoldItalic.ttf" id="6_ly7f2"]
+[ext_resource type="FontFile" uid="uid://busbt7m8f7xlc" path="res://addons/krg-terminal/theme/font/source_code_pro/scp-Italic.ttf" id="7_wmwpv"]
+[ext_resource type="StyleBox" uid="uid://djbfx82cifgly" path="res://addons/krg-terminal/theme/stylebox_output.tres" id="8_e60gc"]
+[ext_resource type="FontFile" uid="uid://cttmxkl2selie" path="res://common/fonts/source_code_pro/scp-Regular.ttf" id="9_yxjmg"]
+[ext_resource type="FontFile" uid="uid://cbeyjj6tq3bbg" path="res://addons/krg-terminal/theme/font/frag_mono/frag_mono_regular.ttf" id="10_d3kwd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mtpld"]
 bg_color = Color(0.121569, 0.121569, 0.121569, 0.784314)
 border_color = Color(0.458824, 0.458824, 0.458824, 1)
 
 [resource]
-default_font = ExtResource("10_w1rne")
-default_font_size = 27
-Button/font_sizes/font_size = 24
-Button/styles/focus = ExtResource("1_arld4")
-Button/styles/hover = ExtResource("1_arld4")
-Button/styles/normal = ExtResource("2_axsim")
-LineEdit/font_sizes/font_size = 24
-LineEdit/fonts/font = ExtResource("3_wfeo4")
-LineEdit/styles/focus = ExtResource("2_rcpmm")
-LineEdit/styles/normal = ExtResource("2_rcpmm")
+default_font = ExtResource("10_d3kwd")
+default_font_size = 21
+Button/fonts/font = ExtResource("1_ujulq")
+Button/styles/focus = ExtResource("2_f036o")
+Button/styles/hover = ExtResource("2_f036o")
+Button/styles/normal = ExtResource("3_ishan")
+LineEdit/fonts/font = ExtResource("1_ujulq")
+LineEdit/styles/focus = ExtResource("4_iyw3k")
+LineEdit/styles/normal = ExtResource("4_iyw3k")
 Panel/styles/panel = SubResource("StyleBoxFlat_mtpld")
-RichTextLabel/fonts/bold_font = ExtResource("5_w0tb4")
-RichTextLabel/fonts/bold_italics_font = ExtResource("6_qubf2")
-RichTextLabel/fonts/italics_font = ExtResource("7_a5c07")
-RichTextLabel/fonts/mono_font = ExtResource("3_wfeo4")
-RichTextLabel/fonts/normal_font = ExtResource("3_wfeo4")
-RichTextLabel/styles/focus = ExtResource("7_kmxna")
-RichTextLabel/styles/normal = ExtResource("7_kmxna")
+RichTextLabel/fonts/bold_font = ExtResource("5_y6qtv")
+RichTextLabel/fonts/bold_italics_font = ExtResource("6_ly7f2")
+RichTextLabel/fonts/italics_font = ExtResource("7_wmwpv")
+RichTextLabel/fonts/mono_font = ExtResource("1_ujulq")
+RichTextLabel/fonts/normal_font = ExtResource("1_ujulq")
+RichTextLabel/styles/focus = ExtResource("8_e60gc")
+RichTextLabel/styles/normal = ExtResource("8_e60gc")
 TextEdit/colors/font_outline_color = Color(0, 0, 0, 1)
 TextEdit/colors/font_readonly_color = Color(1, 1, 1, 1)
 TextEdit/constants/outline_size = 1
-TextEdit/font_sizes/font_size = 24
-TextEdit/fonts/font = ExtResource("3_ucnpj")
-TextEdit/styles/focus = ExtResource("2_rcpmm")
-TextEdit/styles/normal = ExtResource("2_rcpmm")
-TextEdit/styles/read_only = ExtResource("2_rcpmm")
+TextEdit/fonts/font = ExtResource("9_yxjmg")
+TextEdit/styles/focus = ExtResource("4_iyw3k")
+TextEdit/styles/normal = ExtResource("4_iyw3k")
+TextEdit/styles/read_only = ExtResource("4_iyw3k")

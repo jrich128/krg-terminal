@@ -413,7 +413,7 @@ public partial class Terminal : Control
 
     void InputSubmit(string text)
     {
-        Print("==================================", true, TColor.Black, TStyleFlag.Underline | TStyleFlag.Bold);
+        Print("===============================================", true, TColor.Black, TStyleFlag.Underline | TStyleFlag.Bold);
 
         _commandLog.Add(text);
         _logCursor = _commandLog.Count - 1; // reset history cursor 
