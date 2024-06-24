@@ -7,15 +7,11 @@ using System.Linq;
 
 /*
     TODO:
-        FIX BINDS. Them consuming input means that if you bind a key
-        that is already used by another action, it will be overwritten
-
-        We'll need to make some kind of system to either give precidence
+        We need to make some kind of system to either give precidence
         or not let already occupied keys be bound
 
         - Ability to give commands their own autocomplete dictionaries
         for their args.
-            -Implement TerminalCommand.ArgAutocomplete
 
         - Clear binds command
 */ 
