@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://cfehm27qg857d"
-path="res://.godot/imported/scp-Black.ttf-e5525ac40754db3f5d4a5c84fa0ee783.fontdata"
+uid="uid://b57vmidckjpju"
+path="res://.godot/imported/scp-ExtraLightItalic.ttf-b53b84432ceadb6202543f6529a4a777.fontdata"
 
 [deps]
 
-source_file="res://addons/krg-terminal/source_code_pro/scp-Black.ttf"
-dest_files=["res://.godot/imported/scp-Black.ttf-e5525ac40754db3f5d4a5c84fa0ee783.fontdata"]
+source_file="res://addons/krg-terminal/theme/font/source_code_pro/scp-ExtraLightItalic.ttf"
+dest_files=["res://.godot/imported/scp-ExtraLightItalic.ttf-b53b84432ceadb6202543f6529a4a777.fontdata"]
 
 [params]
 

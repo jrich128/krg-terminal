@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://cbeyjj6tq3bbg"
-path="res://.godot/imported/frag_mono_regular.ttf-1eb0695237b676a55dc03a369b9be4c7.fontdata"
+uid="uid://be81pshquqroe"
+path="res://.godot/imported/scp-BoldItalic.ttf-2cdab4f7725b1f0837e885544f6867c5.fontdata"
 
 [deps]
 
-source_file="res://addons/krg-terminal/frag_mono/frag_mono_regular.ttf"
-dest_files=["res://.godot/imported/frag_mono_regular.ttf-1eb0695237b676a55dc03a369b9be4c7.fontdata"]
+source_file="res://addons/krg-terminal/theme/font/source_code_pro/scp-BoldItalic.ttf"
+dest_files=["res://.godot/imported/scp-BoldItalic.ttf-2cdab4f7725b1f0837e885544f6867c5.fontdata"]
 
 [params]
 

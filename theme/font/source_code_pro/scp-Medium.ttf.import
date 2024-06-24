@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://ceg6fxkr4s1yk"
-path="res://.godot/imported/scp-ExtraBold.ttf-9773af8ba2afe4907305108452674f92.fontdata"
+uid="uid://bdjmqglogw2q3"
+path="res://.godot/imported/scp-Medium.ttf-934f78971fa2b86e5b755d8ae818800e.fontdata"
 
 [deps]
 
-source_file="res://addons/krg-terminal/source_code_pro/scp-ExtraBold.ttf"
-dest_files=["res://.godot/imported/scp-ExtraBold.ttf-9773af8ba2afe4907305108452674f92.fontdata"]
+source_file="res://addons/krg-terminal/theme/font/source_code_pro/scp-Medium.ttf"
+dest_files=["res://.godot/imported/scp-Medium.ttf-934f78971fa2b86e5b755d8ae818800e.fontdata"]
 
 [params]
 
