@@ -11,9 +11,12 @@ using System.Linq;
         or not let already occupied keys be bound
 
         - Ability to give commands their own autocomplete dictionaries
-        for their args.
+        for their args
 
-        - Clear binds command
+        - unbind & clearbinds commands
+        - Fix key name confusion - Why are key names listed with the 
+        "key_" prefix, but that's invalid for OS.FindKeycodeFromString()????????
+        and keys with two word names use whitespace instead of underscores too? Ffs
 */ 
 
 /// <summary>
@@ -98,7 +101,7 @@ public struct TerminalCommand
     Italic    = 1 << 0,
     Bold      = 1 << 1,
     Underline = 1 << 2,
-    Error     = Bold | Underline
+    Error     = Bold
 }
 
 /// <summary>
@@ -111,7 +114,9 @@ public enum TColor
     Black  ,
     Red    , 
     Green  ,
-    Blue
+    Blue   ,
+
+    Error = Red
 }
 
 
@@ -411,18 +416,17 @@ public partial class Terminal : Control
         Print("==================================", true, TColor.Black, TStyleFlag.Underline | TStyleFlag.Bold);
 
         _commandLog.Add(text);
-        //GD.Print(_commandHistory.Count);
         _logCursor = _commandLog.Count - 1; // reset history cursor 
 
         // Log command in Ouput 
-        Print(">" + text, true, TColor.Green, TStyleFlag.Bold);
+        Print(">" + text, true, TColor.Green);
 
         // Delete from Input box
         _input.Text = "";
 
         // See if Input text is a valid command
         if(Execute(text) == false){
-            Print("Unknown command", true, TColor.Red, TStyleFlag.Bold | TStyleFlag.Italic | TStyleFlag.Underline);
+            Print("Unknown command", true, TColor.Error, TStyleFlag.Error);
         }
 
         SuggestionClear();
