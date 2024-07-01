@@ -10,6 +10,7 @@ using FileAccess = Godot.FileAccess; // We want to use Godot's not C#'s
 // Next commit: Overhauled input validation; Added autocomplete for command args
 /*
     TODO:
+        - fix suggestion insert to support multiple args
         - Move suggestion box to align with command's args when for them
 
         We need to make some kind of system to either give precidence
@@ -129,8 +130,12 @@ public enum TColor
 public struct InputState
 {
     public bool HasInput;
-    public string[] Words;
+    public string[] Words; // Non-empty strings only
+    public string[] Split; // Raw output of string.Split
     public TerminalCommand? Command;
+
+    public int EndSpaceCount() => Split.Length - Words.Length;
+    public int ArgIndex() => Mathf.Max(Words.Count() - 2 + EndSpaceCount(), 0);
 } 
 
 
@@ -278,8 +283,10 @@ public partial class Terminal : Control
             Key = "tectj",
             ArgCount = 1,
             ValidArgs = new string[][]
-            { 
+            {
                 new string[]{"bass", "bacsy", "bass0", "ass1", "ass2"}, 
+                new string[]{"bussy", "bguuuy", "bussy1", "bfuj", "ass2"},
+                new string[]{"bussy", "bguuuy", "bussy1", "bfuj", "ass2"}
             },
             Function = ShowLog,
             HelpText = "test"
@@ -474,16 +481,21 @@ public partial class Terminal : Control
         // Grab text from focused suggestion button
         string suggestion = _suggs.Single(sugg => sugg.HasFocus()).Text;
 
+        // Insert arg to existing command 
         if(inputState.Command.HasValue){
+
             _input.DeleteText(inputState.Words[0].Length + 1, _input.Text.Length);
             _input.InsertTextAtCaret(suggestion);
-            //_input.Text += suggestion.Text; 
-        }else{
+        }
+        // Insert command 
+        else
+        {
             _input.Text = suggestion;
         }
-                    // Put suggestion into input
-        _input.CaretColumn = _input.Text.Length; // Move caret to end of input
-        _input.GrabFocus();                      // Select input line edit 
+
+        // Move caret to end of input & select input line edit
+        _input.CaretColumn = _input.Text.Length; 
+        _input.GrabFocus();
 
         SuggestionClear();                                     
     }
@@ -493,7 +505,8 @@ public partial class Terminal : Control
         inputState = new InputState()
         {   
             HasInput = HaveInput,
-            Words = newText.Split(' '),
+            Split = newText.Split(' '), 
+            Words = newText.Split(' ').Where(word => word != "").ToArray(),
             Command = StringToCommand(newText)
         };     
 
@@ -570,31 +583,38 @@ public partial class Terminal : Control
             return;
         }
 
-        // Autocomplete for args 
+        // Autocomplete for args _______________________________ 
+
         TerminalCommand command = inputState.Command.Value;
+        
+        // Command has args?
         if(command.ArgCount == 0){
             return;
         }
 
-        bool hasArgAutocomplete = command.ValidArgs != null;
-        if(!hasArgAutocomplete){
+        // Command has AutoComplete data?
+        if(command.ValidArgs == null){
             return;
         }
         
         // Find all non-empty strings, subtract from total strings to get the # of spaces at the end
         var words = inputState.Words.Where(word => word != "");
         int endSpaceCount = inputState.Words.Length - words.Count();
-        
+
+        int argIndex = Mathf.Max(words.Count() - 2 + endSpaceCount, 0); // Max is redundant, why here?
+        GD.Print($"argIndex: {argIndex}");
+        //GD.Print($"argIndex: {inputState.ArgIndex()}");
+
         // Show all valid args if no arg input yet
         if(endSpaceCount == 1){
-            validStrings = command.ValidArgs[0];
+            validStrings = command.ValidArgs[argIndex];
             SetSuggestions(validStrings);
             return;
         }
 
         // Get arg input
         compare = words.Last();
-        validStrings = command.ValidArgs[0];
+        validStrings = command.ValidArgs[argIndex];
         matches = Matches(compare, validStrings);
         SetSuggestions(matches);
     }
