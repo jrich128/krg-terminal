@@ -96,12 +96,11 @@ text = "clear"
 alignment = 0
 
 [node name="sug_1" type="Button" parent="margin/vbox/input/sug_buttons"]
-visible = false
 layout_mode = 2
+text = "ligma"
 alignment = 0
 
 [node name="sug_2" type="Button" parent="margin/vbox/input/sug_buttons"]
-visible = false
 layout_mode = 2
 alignment = 0
 

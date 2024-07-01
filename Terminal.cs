@@ -1,12 +1,17 @@
+#define DBPRINT
 using Godot;
 using System;
 using System.IO;
-using System.Collections.Generic;
-using FileAccess = Godot.FileAccess; // We want to use Godot's not .net's
 using System.Linq;
+using System.Collections.Generic;
+using FileAccess = Godot.FileAccess; // We want to use Godot's not C#'s
 
+
+// Next commit: Overhauled input validation; Added autocomplete for command args
 /*
     TODO:
+        - Move suggestion box to align with command's args when for them
+
         We need to make some kind of system to either give precidence
         or not let already occupied keys be bound
 
@@ -17,7 +22,7 @@ using System.Linq;
         - Fix key name confusion - Why are key names listed with the 
         "key_" prefix, but that's invalid for OS.FindKeycodeFromString()????????
         and keys with two word names use whitespace instead of underscores too? Ffs
-*/ 
+*/
 
 /// <summary>
 /// Container for extension methods 
@@ -34,11 +39,11 @@ public static partial class Extension
         for(int i = 0; i < Mathf.Min(a.Length, b.Length); i++)
         {   
             if(a[i] != b[i]){
-                break;
+                return 0.0f;
             }
             matchingCharCount += 1.0f;
         }
-
+        // Return percentage of characters that match
         return (matchingCharCount / (a.Length+b.Length)) * 2.0f;
     }
 }
@@ -82,6 +87,7 @@ public struct TerminalCommand
     public string Key = "";
 
     public int ArgCount = 0; // 0 = Varible amount
+    public string[][] ValidArgs = null; // For autocomplete; Unused if null
 
     public TerminalFunction Function;
     public string HelpText = ""; 
@@ -120,6 +126,14 @@ public enum TColor
 }
 
 
+public struct InputState
+{
+    public bool HasInput;
+    public string[] Words;
+    public TerminalCommand? Command;
+} 
+
+
 public partial class Terminal : Control
 {
     [Signal] public delegate void OpenedEventHandler(bool state);
@@ -130,13 +144,14 @@ public partial class Terminal : Control
     static string CfgPath(string name) => $"{CFG_DIR}/{name}.cfg";
     
     Dictionary<string, TerminalCommand> _commands = new Dictionary<string, TerminalCommand>();
-    
+    public string[] GetCommands() => _commands.Keys.ToArray();
+
     // A dictionary for each string arg type Ex. command, mapname 
     Dictionary<string, string[]> _autoCompleteDics = new Dictionary<string, string[]>();
 
     static Dictionary<TColor, Color> _color = new Dictionary<TColor, Color>()
     {
-        // This mess allows PrintF to have a default for color.
+        // This mess allows Print to have a default for color.
         // Using Godot's built-in colors is too much of pain
         {TColor.White, Colors.White},
         {TColor.Black, new Color(0.1f , 0.1f, 0.1f )},
@@ -151,10 +166,11 @@ public partial class Terminal : Control
     List<string> _commandLog = new List<string>();
     int _logCursor = 0;
 
+    
     const int SuggestionCount = 6;
     Button[] _suggs = new Button[SuggestionCount];
     int _logBorderWidth = 2; // Width of left border when dislaying _commandLog as suggestions
-    Control _suggParent; 
+    Node _suggParent; 
     
     RichTextLabel _output;
     LineEdit      _input;
@@ -164,35 +180,33 @@ public partial class Terminal : Control
     AnimationPlayer _animPlayer;
     Viewport _viewport;
 
+    InputState inputState;
+    public InputState GetInputState() => inputState;
+
 
     public override void _Ready()
     {
         // Create cfg directory if none
-        if(!Godot.DirAccess.DirExistsAbsolute(CFG_DIR)){
+        if(!DirAccess.DirExistsAbsolute(CFG_DIR)){
             Directory.CreateDirectory(CFG_DIR);
         }
         // Create AutoRun.cfg if none 
-        if(!Godot.FileAccess.FileExists(AUTORUN_PATH)){
+        if(!FileAccess.FileExists(AUTORUN_PATH)){
             using(var file = Godot.FileAccess.Open(AUTORUN_PATH, Godot.FileAccess.ModeFlags.Write)){
             }
         }
 
         _output = GetNode<RichTextLabel>("margin/vbox/output");
         _input  = GetNode<LineEdit>("margin/vbox/input");
-        _input.Connect("text_submitted", new Callable(this, "InputSubmit"));
+        _input.Connect("text_submitted", new Callable(this, "SubmitInput"));
         _input.Connect("focus_entered" , new Callable(this, "OnInputFocusEntered"));
         _input.Connect("text_changed"  , new Callable(this, "OnInputChanged"));
 
         _animPlayer = GetNode<AnimationPlayer>("animation_player");
-
-        _suggParent = GetNodeOrNull<Control>("margin/vbox/input/sug_buttons");
-        if(_suggParent == null){
-            GD.PrintErr($"Terminal: Could not get suggParent");
-            return;
-        }
-
+        
+        _suggParent = GetNode("margin/vbox/input/sug_buttons");
         for(int i = 0; i < SuggestionCount; i++){
-            _suggs[i] = GetNode<Button>($"margin/vbox/input/sug_buttons/sug_{i}");
+            _suggs[i] = _suggParent.GetNode<Button>($"sug_{i}");
             _suggs[i].Connect("pressed", new Callable(this, "SuggestionClicked"));
             _suggs[i].Text = "NULL";
         }
@@ -209,26 +223,69 @@ public partial class Terminal : Control
             Print("Must create Action 'terminal_toggle' in Input Map!");
         }
 
-        AddCommand("help" , 
+        AddCommand( 
         new TerminalCommand("help", 0, Help, "'help <command>' Display info on command"));
 
-        AddCommand("clear", 
+        AddCommand( 
         new TerminalCommand("clear", 0, Clear, "'clear' Clear output log"));
 
-        AddCommand("run"  , 
+        AddCommand( 
         new TerminalCommand("run", 1, RunCfg, "'run <filename>' Reads a text file from 'cfg/' directory with commands in it & executes them"));
 
-        AddCommand("bind" , 
-        new TerminalCommand("bind", 2, CreateBind, "'bind <key> <command>' Binds a key to execute a command. Currently only supports alphanumeric keys"));
+        AddCommand( 
+        new TerminalCommand("bind", 2, CreateBind, "'bind <key> <command>' Binds a key to execute a command"));
         
-        AddCommand("echo" , 
+        AddCommand( 
         new TerminalCommand("echo", 1, Echo, "'echo <text>' Prints text to the output log"));
 
-        AddCommand("quit" , 
+        AddCommand( 
         new TerminalCommand("quit", 0, Quit, "'quit' Quits game"));
 
-        AddCommand("log" , 
+        AddCommand( 
         new TerminalCommand("log", 0, ShowLog, "'log' Prints command history to output log"));
+
+        TerminalCommand tComm = new TerminalCommand()
+        {
+            Key = "test",
+            ArgCount = 1,
+            ValidArgs = new string[][]
+            { 
+                new string[]{"bass", "baps0", "banmss1", "ass2"}, 
+            },
+            Function = ShowLog,
+            HelpText = "test"
+        };
+
+        AddCommand(tComm);
+
+
+        TerminalCommand tComm0 = new TerminalCommand()
+        {
+            Key = "testj",
+            ArgCount = 1,
+            ValidArgs = new string[][]
+            { 
+                new string[]{"bass", "bacs0", "ass1", "ass2"}, 
+            },
+            Function = ShowLog,
+            HelpText = "test"
+        };
+
+        AddCommand(tComm0);
+
+        TerminalCommand tComm1 = new TerminalCommand()
+        {
+            Key = "tectj",
+            ArgCount = 1,
+            ValidArgs = new string[][]
+            { 
+                new string[]{"bass", "bacsy", "bass0", "ass1", "ass2"}, 
+            },
+            Function = ShowLog,
+            HelpText = "test"
+        };
+
+        AddCommand(tComm1);
 
         Execute("run autorun");
 
@@ -313,13 +370,272 @@ public partial class Terminal : Control
         base._Input(@event);
     }
 
-    public override void _Notification(int what)
+    bool Execute(string input)
     {
-        // Is game closing?
-        if(what == NotificationWMCloseRequest){
-            SaveBinds();
+        // Convert to lower case only 
+        string inputLowercase = input.ToLower();
+        // Convert into string array
+        string[] splitInput = inputLowercase.Split(' ');
+        string commandName  = splitInput[0];
+
+        // TODO: Replace with StringToCommand
+        // Check if first string in command is valid command, execute it if so 
+        TerminalCommand command;
+        bool isValidCommand = _commands.TryGetValue(commandName, out command);
+        if(isValidCommand == false){
+            return false;
         }
+
+        // Check for correct num of args
+        if(command.ArgCount != 0){
+            if(splitInput.Length < 1 + command.ArgCount){
+                Print($"{command.Key} Incorect num of args! \nHelp:{command.HelpText}", true, TColor.Red, TStyleFlag.Error);
+                return false;
+            }
+        }
+
+        // Execute function
+        TerminalReturn funcReturn = command.Function(input);
+        if(funcReturn.Details != null){
+            Print(
+                funcReturn.Details, true, 
+                funcReturn.Success? TColor.Default : TColor.Red,
+                funcReturn.Success? TStyleFlag.None : TStyleFlag.Error);
+        }
+
+        return true;
     }
+
+    public void SubmitInput(string text)
+    {
+        Print("===============================================", true, TColor.Black, TStyleFlag.Underline | TStyleFlag.Bold);
+
+        _commandLog.Add(text);
+        _logCursor = _commandLog.Count - 1; // reset history cursor 
+
+        // Log input in output 
+        Print(">" + text, true, TColor.Green);
+
+        // Delete input from line edit if it came from there
+        if(_input.Text == text){
+            _input.Text = "";
+        }
+
+        // See if Input text is a valid command
+        if(Execute(text) == false)
+        {
+            Print("Unknown command", true, TColor.Error, TStyleFlag.Error);
+        }
+
+        SuggestionClear();
+    }
+
+    public void AddCommand(TerminalCommand command)
+    {
+        _commands.Add(command.Key, command);
+    }
+
+    public void Print(string text, bool newLine = true, TColor color = TColor.Default, TStyleFlag flags = TStyleFlag.None)
+    {
+        if(text == null || text.Length < 1){
+            return;
+        }
+
+        // BBCode formatting 
+        if(color != TColor.Default)             _output.PushColor(_color[color]);
+        if(flags.HasFlag(TStyleFlag.Italic))    _output.PushItalics();
+        if(flags.HasFlag(TStyleFlag.Bold))      _output.PushBold();
+        if(flags.HasFlag(TStyleFlag.Underline)) _output.PushUnderline();
+
+        _output.AppendText(text + (newLine? '\n':""));
+
+        _output.PopAll();
+
+        // It scrolls to top when text added, this scrolls back to bottom
+        _output.ScrollToLine(_output.GetLineCount()); 
+    }
+
+    TerminalCommand? StringToCommand(string input)
+    {
+        TerminalCommand result;
+
+        // Check first word against command dictionary
+        string commandName = input.Split(' ').First();
+        bool validCommand = _commands.TryGetValue(commandName, out result);
+        if(validCommand == false){
+            return null;
+        }
+
+        return result;
+    }
+
+    void SuggestionClicked()
+    {
+        // Grab text from focused suggestion button
+        string suggestion = _suggs.Single(sugg => sugg.HasFocus()).Text;
+
+        if(inputState.Command.HasValue){
+            _input.DeleteText(inputState.Words[0].Length + 1, _input.Text.Length);
+            _input.InsertTextAtCaret(suggestion);
+            //_input.Text += suggestion.Text; 
+        }else{
+            _input.Text = suggestion;
+        }
+                    // Put suggestion into input
+        _input.CaretColumn = _input.Text.Length; // Move caret to end of input
+        _input.GrabFocus();                      // Select input line edit 
+
+        SuggestionClear();                                     
+    }
+
+    public void OnInputChanged(string newText)
+    {
+        inputState = new InputState()
+        {   
+            HasInput = HaveInput,
+            Words = newText.Split(' '),
+            Command = StringToCommand(newText)
+        };     
+
+        SuggestionShowMatches();
+    }
+
+    void SuggestionShowMatches()
+    {
+        static string[] Matches(string input, string[] strings)
+        {   
+            GD.Print("\n\nInput: " + input);
+
+            // Pair strings & their similarity into an array of tuples
+            (string text, float sim)[] potMatches = new (string text, float sim)[strings.Length];
+            for(int i = 0; i < strings.Length; i++)
+            {
+                potMatches[i] = (strings[i], strings[i].Similarity(input));
+            }
+
+            GD.Print("Matches:_____________");
+            // Find all matches i.e. any strings with a sim > 0 && != 1 as we don't want to suggest an already complete word
+            var matches = potMatches.Where(e => e.sim > 0.0f && e.sim != 1.0f);
+            foreach(var match in matches)
+            {
+                GD.Print(match);
+            }
+
+            GD.Print("Matches sorted by complement of perecentage similarity:_____________");
+            // Sort based on complement of perectage similarity
+            matches = matches.OrderBy(e => (1.0f - e.sim));
+            foreach(var match in matches)
+            {
+                GD.Print(match);
+            }            
+
+            // Create string[] with just the text from the sorted tuple array
+            string[] output = new string[matches.Count()];
+            for(int i = 0; i < output.Length; i++)
+            {
+                output[i] = matches.ElementAt(i).text;
+            }
+
+            GD.Print("Output Len: " + output.Length);
+            
+            return output;
+        }
+
+        void SetSuggestions(string[] text)
+        {
+            //SuggestionClear();
+            for(int i = 0; i < text.Length && i < SuggestionCount; i++){
+                _suggs[i].Text = text[i];
+                _suggs[i].Visible = true;
+            }
+        }
+
+        SuggestionClear();
+
+        // Nothing to suggest if no input
+        if(!inputState.HasInput){
+            return;
+        }
+
+        string compare        = null;
+        string[] validStrings = null;
+        string[] matches      = null;
+        
+        // Autocomplete for commands 
+        if(!inputState.Command.HasValue){
+            compare = inputState.Words[0];            // Find command at first index
+            validStrings = _commands.Keys.ToArray();  // Get string[] of all potential commands
+            matches = Matches(compare, validStrings); // Find all that match
+            SetSuggestions(matches);
+            return;
+        }
+
+        // Autocomplete for args 
+        TerminalCommand command = inputState.Command.Value;
+        if(command.ArgCount == 0){
+            return;
+        }
+
+        bool hasArgAutocomplete = command.ValidArgs != null;
+        if(!hasArgAutocomplete){
+            return;
+        }
+        
+        // Find all non-empty strings, subtract from total strings to get the # of spaces at the end
+        var words = inputState.Words.Where(word => word != "");
+        int endSpaceCount = inputState.Words.Length - words.Count();
+        
+        // Show all valid args if no arg input yet
+        if(endSpaceCount == 1){
+            validStrings = command.ValidArgs[0];
+            SetSuggestions(validStrings);
+            return;
+        }
+
+        // Get arg input
+        compare = words.Last();
+        validStrings = command.ValidArgs[0];
+        matches = Matches(compare, validStrings);
+        SetSuggestions(matches);
+    }
+
+    void SuggestionClear()
+    {   
+        _suggs.All(sugg => {
+            sugg.Text = "";  
+            sugg.Visible = false;  
+            ((StyleBoxFlat)sugg.GetThemeStylebox("normal")).BorderWidthLeft = 0;
+            ((StyleBoxFlat)sugg.GetThemeStylebox("focus")).BorderWidthLeft = 0;
+            ((StyleBoxFlat)sugg.GetThemeStylebox("hover")).BorderWidthLeft = 0;
+            return true;
+            });
+    }
+
+    bool SuggestionShowHist()
+    {
+        SuggestionClear();
+        if(_commandLog.Count == 0){
+            return false;
+        }
+
+        // Reverse to show most recent at top
+        var histReverse = _commandLog.ToArray();
+        Array.Reverse(histReverse);
+
+        for(int i = 0; i < _commandLog.Count && i < SuggestionCount; i++)
+        {   
+            // Give suggestion buttons a mark on the left side for color coding
+            ((StyleBoxFlat)_suggs[i].GetThemeStylebox("normal")).BorderWidthLeft = _logBorderWidth;
+            ((StyleBoxFlat)_suggs[i].GetThemeStylebox("focus")).BorderWidthLeft  = _logBorderWidth;
+            ((StyleBoxFlat)_suggs[i].GetThemeStylebox("hover")).BorderWidthLeft  = _logBorderWidth;
+            
+            _suggs[i].Text = histReverse[i];
+            _suggs[i].Visible = true;
+        }
+
+        return true;
+    }
+
 
     void SaveBinds()
     {
@@ -352,181 +668,6 @@ public partial class Terminal : Control
         }
     }
 
-    public void AddCommand(string key, TerminalCommand command)
-    {
-        _commands.Add(key, command);
-    }
-
-    bool Execute(string input)
-    {
-        // Convert to lower case only 
-        string inputLowercase = input.ToLower();
-        // Convert into string array
-        string[] splitInput = inputLowercase.Split(' ');
-        string commandName  = splitInput[0];
-
-        // Check if first string in command is valid command, execute it if so 
-        TerminalCommand command;
-        bool isValidCommand = _commands.TryGetValue(commandName, out command);
-        if(isValidCommand == false){
-            return false;
-        }
-        // Check for correct num of args
-        if(command.ArgCount != 0){
-            if(splitInput.Length < 1 + command.ArgCount){
-                Print($"{command.Key} Incorect num of args! \nHelp:{command.HelpText}", true, TColor.Red, TStyleFlag.Error);
-                return false;
-            }
-        }
-
-        // Execute function
-        TerminalReturn funcReturn = command.Function(input);
-        if(funcReturn.Details != null){
-            Print(
-                funcReturn.Details, true, 
-                funcReturn.Success? TColor.Default : TColor.Red,
-                funcReturn.Success? TStyleFlag.None : TStyleFlag.Error);
-        }
-
-        return true;
-    }
-
-    public void Print(string text, bool newLine = true, TColor color = TColor.Default, TStyleFlag flags = TStyleFlag.None)
-    {
-        if(text == null || text.Length < 1){
-            return;
-        }
-
-        // BBCode formatting 
-        if(color != TColor.Default)             _output.PushColor(_color[color]);
-        if(flags.HasFlag(TStyleFlag.Italic))    _output.PushItalics();
-        if(flags.HasFlag(TStyleFlag.Bold))      _output.PushBold();
-        if(flags.HasFlag(TStyleFlag.Underline)) _output.PushUnderline();
-
-        _output.AppendText(text + (newLine? '\n':""));
-
-        _output.PopAll();
-
-        // It scrolls to top when text added, this scrolls back to bottom
-        _output.ScrollToLine(_output.GetLineCount()); 
-    }
-
-    void InputSubmit(string text)
-    {
-        Print("===============================================", true, TColor.Black, TStyleFlag.Underline | TStyleFlag.Bold);
-
-        _commandLog.Add(text);
-        _logCursor = _commandLog.Count - 1; // reset history cursor 
-
-        // Log command in Ouput 
-        Print(">" + text, true, TColor.Green);
-
-        // Delete from Input box
-        _input.Text = "";
-
-        // See if Input text is a valid command
-        if(Execute(text) == false){
-            Print("Unknown command", true, TColor.Error, TStyleFlag.Error);
-        }
-
-        SuggestionClear();
-    }
-
-    void SuggestionClicked()
-    {
-        foreach(var suggestion in _suggs){
-            if(suggestion.HasFocus()){
-                _input.Text = suggestion.Text;           // Put suggestion into input
-                _input.CaretColumn = _input.Text.Length; // Move caret to end of input
-                _input.GrabFocus();                      // Select input line edit                               
-                SuggestionClear();
-                return;
-            }
-        }
-    }
-
-    void SuggestionShowMatches()
-    {
-        string[] Matches(string input, string[] strings)
-        {   
-            float[] simValues  = new float[strings.Length];
-            int matches = 0;
-            for(int i = 0; i < strings.Length; i++)
-            {
-                simValues[i] = input.Similarity(strings[i]);
-                if(simValues[i] > 0.0f){
-                    matches++;
-                    //GD.Print($"{input}, {strings[i]}, {simValues[i]}");
-                }
-            }
-
-            Array.Sort(simValues, strings);
-            Array.Reverse(strings);
-            string[] matchBuff = new string[matches];
-            for(int i = 0; i < matches; i++){
-                //GD.Print(strings[i]);
-                matchBuff[i] = strings[i];
-            }
-
-            return matchBuff;
-        }
-
-        string[] commandMatches = Matches(_input.Text, _commands.Keys.ToArray());
-        //string[] varMatches     = PossibleMatches(_input.Text, _vars.Keys.ToArray());
-        string[] finalSet = commandMatches; //.Concat(varMatches).ToArray();
-
-        // Show matches in suggestion buttons under input line edit
-        for(int i = 0; i < commandMatches.Length && i < SuggestionCount; i++){
-            _suggs[i].Text = finalSet[i];
-            _suggs[i].Visible = true;
-        }
-    }
-
-    bool SuggestionShowHist()
-    {
-        SuggestionClear();
-        if(_commandLog.Count == 0){
-            return false;
-        }
-
-        var histReverse = _commandLog.ToArray();
-        Array.Reverse(histReverse);
-
-        for(int i = 0; i < _commandLog.Count && i < SuggestionCount; i++)
-        {   
-            ((StyleBoxFlat)_suggs[i].GetThemeStylebox("normal")).BorderWidthLeft = _logBorderWidth;
-            ((StyleBoxFlat)_suggs[i].GetThemeStylebox("focus")).BorderWidthLeft  = _logBorderWidth;
-            ((StyleBoxFlat)_suggs[i].GetThemeStylebox("hover")).BorderWidthLeft  = _logBorderWidth;
-
-            _suggs[i].Text = histReverse[i];
-            _suggs[i].Visible = true;
-        }
-
-        return true;
-    }
-
-    void SuggestionClear()
-    {   
-        _suggs.All(sugg => {
-            sugg.Text = "";  
-            sugg.Visible = false;  
-            ((StyleBoxFlat)sugg.GetThemeStylebox("normal")).BorderWidthLeft = 0;
-            ((StyleBoxFlat)sugg.GetThemeStylebox("focus")).BorderWidthLeft = 0;
-            ((StyleBoxFlat)sugg.GetThemeStylebox("hover")).BorderWidthLeft = 0;
-            return true;
-            });
-    }
-
-    public void OnInputChanged(string newText)
-    {
-        if(HaveInput){
-            SuggestionShowMatches();
-        }
-        else{
-            SuggestionClear();
-        }
-    }
-
     public void Close()
     {
         _animPlayer.PlayBackwards("open");
@@ -545,6 +686,14 @@ public partial class Terminal : Control
         Visible = true;
         _animPlayer.Play("open");
         EmitSignal(SignalName.Opened, Visible);
+    }
+
+    public override void _Notification(int what)
+    {
+        // Is game closing?
+        if(what == NotificationWMCloseRequest){
+            SaveBinds();
+        }
     }
 
     /* All bellow are our built-in Terminal Commands */
@@ -614,6 +763,7 @@ public partial class Terminal : Control
             return new TerminalReturn(false, $"File '{cfgPath}' doesn't exist!");
         }
         
+        // TODO: Replace with Godot's FileAccess
         // Load file & execute commands within
         string[] commands = File.ReadAllLines(cfgPath);
         for(int i = 0; i < commands.Length; i++)

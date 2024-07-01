@@ -1,3 +1,4 @@
+
 Drop the "KEY_" part, and these are all the valid key names you can use with the "bind" command. Copypasta'd from the docs for convenience 
 
 
@@ -535,7 +536,7 @@ Key KEY_ASTERISK = 42
 
 Key KEY_PLUS = 43
 
-    key.
+	key.
 
 Key KEY_COMMA = 44
 
@@ -543,7 +544,7 @@ Key KEY_COMMA = 44
 
 Key KEY_MINUS = 45
 
-    key.
+	key.
 
 Key KEY_PERIOD = 46
 
