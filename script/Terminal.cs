@@ -85,10 +85,6 @@ public partial class Terminal : Control
     Dictionary<string, TVar> _tvars = new Dictionary<string, TVar>();
 
 
-
-    // A dictionary for each string arg type Ex. command, mapname 
-    Dictionary<string, string[]> _autoCompleteDics = new Dictionary<string, string[]>();
-
     static Dictionary<KrgTerminal.Color, Godot.Color> _color = new Dictionary<KrgTerminal.Color, Godot.Color>()
     {
         // This mess allows Print to have a default for color.
@@ -105,17 +101,15 @@ public partial class Terminal : Control
     // Log of all input submitted
     List<string> _commandLog = new List<string>();
     int _logCursor = 0;
-
     
     const int SuggestionCount = 6;
     Button[] _suggs = new Button[SuggestionCount];
     int _logBorderWidth = 2; // Width of left border when dislaying _commandLog as suggestions
     Node _suggParent; 
-    
+    bool SuggsHaveFocus => _suggs.Any(sug => sug.HasFocus());
+
     RichTextLabel _output;
     LineEdit      _input;
-    bool HaveInput      => _input.Text != "";
-    bool SuggsHaveFocus => _suggs.Any(sug => sug.HasFocus());
 
     AnimationPlayer _animPlayer;
     Viewport _viewport;
@@ -125,8 +119,39 @@ public partial class Terminal : Control
 
     public int tester = 1;
 
-    public override void _Ready()
+    /*
+        NPCMan
+            - Sunter
+            - Dunker
+
+        so sunter's TVars would be prefixed with their path i.e.
+        set sunter.money 100
+        get sunter.money 
+    */
+    /*
+    void FindTVars()
     {
+
+        TVar[] GetNodeVars()
+        {
+
+        }
+        // Is object marked with [Save]?
+		var attribs = Attribute.GetCustomAttributes(objType);
+		bool hasSaveAttrib = attribs.Any(attrib => attrib.GetType() == typeof(SaveAttribute));
+		if(!hasSaveAttrib){
+			return null;
+		}
+		
+		// Get properties marked with [Save]
+		var properties = objType.GetRuntimeProperties();
+		properties = properties.Where(prop => prop.CustomAttributes.Any(attrib => attrib.AttributeType == typeof(SaveAttribute))); 
+    }   */
+
+    public override void _Ready()
+    {   
+        //GetNode("/root").Connect(SignalName.Ready, new Callable(this, "FindTVars")); 
+
         // Create cfg directory if none
         if(!DirAccess.DirExistsAbsolute(CFG_DIR)){
             Directory.CreateDirectory(CFG_DIR);
@@ -190,7 +215,7 @@ public partial class Terminal : Control
         {
             Key = "test",
             ArgCount = 1,
-            ValidArgs = new string[][]
+            ArgAutocomplete = new string[][]
             { 
                 new string[]{"bass", "baps0", "banmss1", "ass2"}, 
             },
@@ -205,7 +230,7 @@ public partial class Terminal : Control
         {
             Key = "testj",
             ArgCount = 1,
-            ValidArgs = new string[][]
+            ArgAutocomplete = new string[][]
             { 
                 new string[]{"bass", "bacs0", "ass1", "ass2"}, 
             },
@@ -219,7 +244,7 @@ public partial class Terminal : Control
         {
             Key = "tectj",
             ArgCount = 1,
-            ValidArgs = new string[][]
+            ArgAutocomplete = new string[][]
             {
                 new string[]{"bass", "bacsy", "bass0", "ass1", "ass2"}, 
                 new string[]{"ii.txt"},
@@ -252,7 +277,7 @@ public partial class Terminal : Control
                 ArgCount = 2,
                 Function = SetTVar,
                 HelpText = "NULL",
-                ValidArgs = new string[][]
+                ArgAutocomplete = new string[][]
                 {
                     _tvars.Keys.ToArray(),
                     null
@@ -267,7 +292,7 @@ public partial class Terminal : Control
                 ArgCount = 1,
                 Function = GetTVar,
                 HelpText = "NULL",
-                ValidArgs = new string[][]
+                ArgAutocomplete = new string[][]
                 {
                     _tvars.Keys.ToArray()
                 }
@@ -505,7 +530,7 @@ public partial class Terminal : Control
     {
         inputState = new InputState()
         {   
-            HasInput = HaveInput,
+            HasInput = _input.Text != "",
             Split = newText.Split(' '), 
             Words = newText.Split(' ').Where(word => word != "").ToArray(),
             Command = StringToCommand(newText)
@@ -614,7 +639,7 @@ public partial class Terminal : Control
             return;
         }
         // Command has AutoComplete data?
-        if(command.ValidArgs == null){
+        if(command.ArgAutocomplete == null){
             return;
         }   
 
@@ -626,20 +651,20 @@ public partial class Terminal : Control
         }
 
         // Does arg have autocomplete data?
-        if(command.ValidArgs[argIndex] == null){
+        if(command.ArgAutocomplete[argIndex] == null){
             return;
         } 
 
         // Show all valid args if no arg input yet
         if(inputState.EndSpaceCount() == 1){
-            validStrings = command.ValidArgs[argIndex];
+            validStrings = command.ArgAutocomplete[argIndex];
             SetSuggestions(validStrings);
             return;
         }
 
         // Get arg input
         compare = inputState.Words.Last();
-        validStrings = command.ValidArgs[argIndex];
+        validStrings = command.ArgAutocomplete[argIndex];
         matches = Matches(compare, validStrings);
         SetSuggestions(matches);
     }

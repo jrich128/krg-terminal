@@ -4,58 +4,8 @@ using KrgTerminal;
 using System.IO;
 using FileAccess = Godot.FileAccess;
 using System.Reflection;
-using System.Dynamic;
-using System.Runtime.CompilerServices;
 
 // TVar attribute, mark 
-
-/// <summary>
-/// Wrapper around Field & Property info to make life less of a headace
-/// </summary>
-struct TVarMember
-{/*
-	MemberInfo _member;
-	object value;
-
-	public TVarMember(MemberInfo member)
-	{
-		_member = member;
-		value = 
-	}
-	
-	bool Set(Variant value)
-	{
-		switch(_member.MemberType)
-		{
-			case MemberTypes.Field:
-			value = ((FieldInfo)_member).GetValue(obj);
-			break;
-
-			case MemberTypes.Property:
-			value = ((PropertyInfo)_member).GetValue(obj);
-			break;
-
-			default:
-			GD.PrintErr($"Member type: {_member.MemberType} not valid");
-			break;
-		}
-
-		switch(value)
-		{
-			case int v:
-			return v;
-
-			case string v:
-			return v;
-
-			default:
-			GD.PrintErr($"{value.GetType()} not compatible");
-			break;
-		}
-	}
-
-	*/
-}
 
 public struct TVar
 {

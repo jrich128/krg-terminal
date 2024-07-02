@@ -30,7 +30,7 @@ namespace KrgTerminal
 		public string Key = "";
 
 		public int ArgCount = 0; // 0 = Varible amount
-		public string[][] ValidArgs = null; // For autocomplete; Unused if null
+		public string[][] ArgAutocomplete = null; // For autocomplete; Unused if null
 
 		public CommandFunction Function;
 		public string HelpText = ""; 
