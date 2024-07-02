@@ -4,21 +4,17 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 
 using FileAccess = Godot.FileAccess; // We want to use Godot's not C#'s
 using KrgTerminal;
 
-// Next commit: Moved types to their own files, renamed & put them under a namespace
-// Next push: Overhauled input validation; Added autocomplete for command args
+
 /*
     TODO:
-        - Fix string sim func to account for wrong length
         - Fix keycode.txt names that are supposed to have underscores
         - Add valid key names to bind's autocomplete 
         - Load autocomplete data from text file for big ones
-
-        Adding new commands via attributes. We could pass in Command data through the 
-        constructor right?
 
         We need to make some kind of system to either give precidence
         or not let already occupied keys be bound
@@ -86,6 +82,9 @@ public partial class Terminal : Control
     static string CfgPath(string name) => $"{CFG_DIR}/{name}.cfg";
     
     Dictionary<string, TerminalCommand> _commands = new Dictionary<string, TerminalCommand>();
+    Dictionary<string, TVar> _tvars = new Dictionary<string, TVar>();
+
+
 
     // A dictionary for each string arg type Ex. command, mapname 
     Dictionary<string, string[]> _autoCompleteDics = new Dictionary<string, string[]>();
@@ -124,6 +123,7 @@ public partial class Terminal : Control
     InputState inputState;
     public InputState GetInputState() => inputState;
 
+    public int tester = 1;
 
     public override void _Ready()
     {
@@ -229,6 +229,51 @@ public partial class Terminal : Control
             HelpText = "test"
         };
 
+        
+
+        _tvars.Add("ass", 
+        new TVar()
+        {
+            Obj = this, VarType = Variant.Type.Int,
+            Member = typeof(Terminal).GetField("tester")
+        });
+
+        _tvars.Add("grass", 
+        new TVar()
+        {
+            Obj = this, VarType = Variant.Type.String, 
+            Member = typeof(Terminal).GetField("testerStr")
+        });
+
+        AddCommand(
+            new TerminalCommand()
+            {
+                Key = "set",
+                ArgCount = 2,
+                Function = SetTVar,
+                HelpText = "NULL",
+                ValidArgs = new string[][]
+                {
+                    _tvars.Keys.ToArray(),
+                    null
+                }
+            }
+        );
+
+        AddCommand(
+            new TerminalCommand()
+            {
+                Key = "get",
+                ArgCount = 1,
+                Function = GetTVar,
+                HelpText = "NULL",
+                ValidArgs = new string[][]
+                {
+                    _tvars.Keys.ToArray()
+                }
+            }
+        );
+
         AddCommand(tComm1);
 
         Execute("run autorun");
@@ -237,8 +282,14 @@ public partial class Terminal : Control
 
         //GetFileAsLines("s");
 
+        /*
+            Loop from root to find objects with classes with Tvar attribute and shit
+        */
+
         base._Ready();
     }  
+
+    public string testerStr = "fs";
 
     string[] GetFileAsLines(string name)
     {
@@ -562,7 +613,6 @@ public partial class Terminal : Control
         if(command.ArgCount == 0){
             return;
         }
-
         // Command has AutoComplete data?
         if(command.ValidArgs == null){
             return;
@@ -571,7 +621,7 @@ public partial class Terminal : Control
         int argIndex = inputState.ArgIndex();
 
         // Are more args in input than the command takes?
-        if(argIndex > command.ArgCount){
+        if(argIndex + 1 > command.ArgCount){
             return;
         }
 
