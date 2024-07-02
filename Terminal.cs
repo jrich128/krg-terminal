@@ -12,14 +12,16 @@ using KrgTerminal;
 // Next push: Overhauled input validation; Added autocomplete for command args
 /*
     TODO:
+        - Fix string sim func to account for wrong length
+        - Fix keycode.txt names that are supposed to have underscores
         - Add valid key names to bind's autocomplete 
         - Load autocomplete data from text file for big ones
 
+        Adding new commands via attributes. We could pass in Command data through the 
+        constructor right?
+
         We need to make some kind of system to either give precidence
         or not let already occupied keys be bound
-
-        - Ability to give commands their own autocomplete dictionaries
-        for their args
 
         - unbind & clearbinds commands
         - Fix key name confusion - Why are key names listed with the 
@@ -43,111 +45,37 @@ namespace KrgTerminal
             (BindCommand, ActionName, Command) = (bindCommand, actionName, command);
         }
     }
-}
 
-
-/// <summary>
-/// Data returned from a <c>TerminalFunction</c> 
-/// </summary>
-public struct TerminalReturn
-{
-    public bool Success;
-    public string Details;
-
-    public TerminalReturn(bool success, string details)
+    /// <summary>
+    /// BBCode text style effects; Not all implemented yet!
+    /// </summary>
+    [Flags] public enum StyleFlag
     {
-        Success = success; Details = details;
+        None      = 0,
+        Italic    = 1 << 0,
+        Bold      = 1 << 1,
+        Underline = 1 << 2,
+        Error     = Bold
+    }
+
+    /// <summary>
+    /// Terminal text colors 
+    /// </summary>
+    public enum Color
+    {
+        Default,
+        White  ,
+        Black  ,
+        Red    , 
+        Green  ,
+        Blue   ,
+
+        Error = Red
     }
 }
 
-/// <summary>
-/// Signature for all functions tied to a terminal command
-/// </summary>
-public delegate TerminalReturn TerminalFunction(string args);
 
-public struct TerminalCommand
-{
-    public string Key = "";
-
-    public int ArgCount = 0; // 0 = Varible amount
-    public string[][] ValidArgs = null; // For autocomplete; Unused if null
-
-    public TerminalFunction Function;
-    public string HelpText = ""; 
-    
-    public TerminalCommand(string key, int argCount, TerminalFunction function, string helpText)
-    {
-        Key = key; ArgCount = argCount; Function = function; HelpText = helpText;
-    }
-}
-
-/// <summary>
-/// BBCode text style effects; Not all implemented yet!
-/// </summary>
-[Flags] public enum TStyleFlag
-{
-    None      = 0,
-    Italic    = 1 << 0,
-    Bold      = 1 << 1,
-    Underline = 1 << 2,
-    Error     = Bold
-}
-
-/// <summary>
-/// Terminal text colors 
-/// </summary>
-public enum TColor
-{
-    Default,
-    White  ,
-    Black  ,
-    Red    , 
-    Green  ,
-    Blue   ,
-
-    Error = Red
-}
-
-
-public struct InputState
-{
-    public bool HasInput;
-    public string[] Words; // Non-empty strings only
-    public string[] Split; // Raw output of string.Split
-    public TerminalCommand? Command;
-
-    public int EndSpaceCount() => Split.Length - Words.Length;
-    public int ArgIndex() => Mathf.Max(Words.Count() - 2 + EndSpaceCount(), 0);
-    
-    // This needs to be re-written
-    public int LastWordStartIndex()
-    {
-        int argIndex = ArgIndex();
-        int charCount = 0;
-
-        if(EndSpaceCount() > 0)
-        {
-            for(int i = 0; i < argIndex + 1; i++)
-            {
-                charCount += Words[i].Length;
-                charCount += 1;
-            }
-
-            return charCount;
-        }
-        else
-        {
-            for(int i = 0; i < Words.Length - 1; i++)
-            {
-                charCount += Words[i].Length;
-                charCount += 1; // space
-            }
-            return charCount;
-        }
-    } 
-} 
-
-
+[GlobalClass]
 public partial class Terminal : Control
 {
     [Signal] public delegate void OpenedEventHandler(bool state);
@@ -162,15 +90,15 @@ public partial class Terminal : Control
     // A dictionary for each string arg type Ex. command, mapname 
     Dictionary<string, string[]> _autoCompleteDics = new Dictionary<string, string[]>();
 
-    static Dictionary<TColor, Color> _color = new Dictionary<TColor, Color>()
+    static Dictionary<KrgTerminal.Color, Godot.Color> _color = new Dictionary<KrgTerminal.Color, Godot.Color>()
     {
         // This mess allows Print to have a default for color.
         // Using Godot's built-in colors is too much of pain
-        {TColor.White, Colors.White},
-        {TColor.Black, new Color(0.1f , 0.1f, 0.1f )},
-        {TColor.Red  , new Color(0.65f, 0.15f,0.15f)},
-        {TColor.Green, new Color(0.57f, 0.7f, 0.23f)},
-        {TColor.Blue,  new Color(0.0f , 0.0f, 0.51f)}
+        { KrgTerminal.Color.White, Colors.White},
+        { KrgTerminal.Color.Black, new Godot.Color(0.1f , 0.1f, 0.1f )},
+        { KrgTerminal.Color.Red  , new Godot.Color(0.65f, 0.15f,0.15f)},
+        { KrgTerminal.Color.Green, new Godot.Color(0.57f, 0.7f, 0.23f)},
+        { KrgTerminal.Color.Blue,  new Godot.Color(0.0f , 0.0f, 0.51f)}
     };
 
     List<Bind> _binds = new List<Bind>();
@@ -205,7 +133,7 @@ public partial class Terminal : Control
         }
         // Create AutoRun.cfg if none 
         if(!FileAccess.FileExists(AUTORUN_PATH)){
-            using(var file = Godot.FileAccess.Open(AUTORUN_PATH, Godot.FileAccess.ModeFlags.Write)){
+            using(var file = Godot.FileAccess.Open(AUTORUN_PATH, FileAccess.ModeFlags.Write)){
             }
         }
 
@@ -258,8 +186,6 @@ public partial class Terminal : Control
         new TerminalCommand("log", 0, ShowLog, "'log' Prints command history to output log"));
 
 
-
-
         TerminalCommand tComm = new TerminalCommand()
         {
             Key = "test",
@@ -309,7 +235,7 @@ public partial class Terminal : Control
 
         LoadBinds();
 
-        GetFileAsLines("s");
+        //GetFileAsLines("s");
 
         base._Ready();
     }  
@@ -421,18 +347,18 @@ public partial class Terminal : Control
         // Check for correct num of args
         if(command.ArgCount != 0){
             if(splitInput.Length < 1 + command.ArgCount){
-                Print($"{command.Key} Incorect num of args! \nHelp:{command.HelpText}", true, TColor.Red, TStyleFlag.Error);
+                Print($"{command.Key} Incorect num of args! \nHelp:{command.HelpText}", true, KrgTerminal.Color.Red, StyleFlag.Error);
                 return false;
             }
         }
 
         // Execute function
-        TerminalReturn funcReturn = command.Function(input);
+        CommandReturn funcReturn = command.Function(input);
         if(funcReturn.Details != null){
             Print(
                 funcReturn.Details, true, 
-                funcReturn.Success? TColor.Default : TColor.Red,
-                funcReturn.Success? TStyleFlag.None : TStyleFlag.Error);
+                funcReturn.Success? KrgTerminal.Color.Default : KrgTerminal.Color.Red,
+                funcReturn.Success? StyleFlag.None : StyleFlag.Error);
         }
 
         return true;
@@ -440,13 +366,13 @@ public partial class Terminal : Control
 
     public void SubmitInput(string text)
     {
-        Print("===============================================", true, TColor.Black, TStyleFlag.Underline | TStyleFlag.Bold);
+        Print("===============================================", true, KrgTerminal.Color.Black, StyleFlag.Underline | StyleFlag.Bold);
 
         _commandLog.Add(text);
         _logCursor = _commandLog.Count - 1; // reset history cursor 
 
         // Log input in output 
-        Print(">" + text, true, TColor.Green);
+        Print(">" + text, true, KrgTerminal.Color.Green);
 
         // Delete input from line edit if it came from there
         if(_input.Text == text){
@@ -456,7 +382,7 @@ public partial class Terminal : Control
         // See if Input text is a valid command
         if(Execute(text) == false)
         {
-            Print("Unknown command", true, TColor.Error, TStyleFlag.Error);
+            Print("Unknown command", true, KrgTerminal.Color.Error, StyleFlag.Error);
         }
 
         SuggestionClear();
@@ -467,17 +393,17 @@ public partial class Terminal : Control
         _commands.Add(command.Key, command);
     }
 
-    public void Print(string text, bool newLine = true, TColor color = TColor.Default, TStyleFlag flags = TStyleFlag.None)
+    public void Print(string text, bool newLine = true, KrgTerminal.Color color = KrgTerminal.Color.Default, StyleFlag flags = StyleFlag.None)
     {
         if(text == null || text.Length < 1){
             return;
         }
 
         // BBCode formatting 
-        if(color != TColor.Default)             _output.PushColor(_color[color]);
-        if(flags.HasFlag(TStyleFlag.Italic))    _output.PushItalics();
-        if(flags.HasFlag(TStyleFlag.Bold))      _output.PushBold();
-        if(flags.HasFlag(TStyleFlag.Underline)) _output.PushUnderline();
+        if(color != KrgTerminal.Color.Default) _output.PushColor(_color[color]);
+        if(flags.HasFlag(StyleFlag.Italic))    _output.PushItalics();
+        if(flags.HasFlag(StyleFlag.Bold))      _output.PushBold();
+        if(flags.HasFlag(StyleFlag.Underline)) _output.PushUnderline();
 
         _output.AppendText(text + (newLine? '\n':""));
 
@@ -763,131 +689,4 @@ public partial class Terminal : Control
             SaveBinds();
         }
     }
-
-    /* All bellow are our built-in Terminal Commands */
-    
-    TerminalReturn ClearBinds(string args)
-    {
-        //TODO:InputMap.EraseAction
-        throw new NotImplementedException();
-    }
-
-    TerminalReturn Quit(string args)
-    {
-        GetTree().Root.PropagateNotification((int)NotificationWMCloseRequest);
-        GetTree().Quit();
-        return new TerminalReturn(true, null);
-    }
-
-    TerminalReturn CreateBind(string args)
-    {
-        // bind <key> <command>
-        string[] argsSplit = args.Split(' ');
-        if(argsSplit.Length < 3){
-            return new TerminalReturn(false, "Syntax is: bind <key> <command>");
-        }
-        
-        string keyName     = argsSplit[1];
-        string commandName = argsSplit[2];
-        string command = args.Remove(0, argsSplit[0].Length + argsSplit[1].Length + 2);//       argsSplit[2];
- 
-        // Check command is valid
-        if(!_commands.TryGetValue(commandName, out _)){
-            return new TerminalReturn(false, $"'{commandName}' Unknown command.");
-        }
-        // Check if keycode string is valid
-        Key key = OS.FindKeycodeFromString(keyName.Replace('_', ' ')); // Whitespace? FFS
-        if(key == Key.None){
-            return new TerminalReturn(false, $"Unrecognized key '{keyName}', check 'bind_keycode_ref.txt' for valid names.");
-        }
-
-        Bind bind = new Bind();
-        bind.BindCommand = args;
-        bind.ActionName  = $"bind_{_binds.Count}";
-        bind.Command     = command;
-
-        InputMap.AddAction(bind.ActionName);
-        InputEventKey inputEvent = new InputEventKey() {Keycode = key}; 
-        InputMap.ActionAddEvent(bind.ActionName, inputEvent);
-        
-        _binds.Add(bind);
-
-        return new TerminalReturn(true, $"'{command}' bound to '{keyName}'");
-    }
-
-    TerminalReturn RunCfg(string args)
-    {
-        string[] argsSplit = args.Split(' ');
-        if(argsSplit.Length != 2){
-            return new TerminalReturn(false, $"Invalid command: {args}, incorrect num of arguments!");
-        }
-
-        // Make path from name
-        string cfgName = argsSplit[1];
-        string cfgPath = CfgPath(argsSplit[1]);
-       
-        // Is file real?
-        if(!FileAccess.FileExists(cfgPath)){
-            return new TerminalReturn(false, $"File '{cfgPath}' doesn't exist!");
-        }
-        
-        // TODO: Replace with Godot's FileAccess
-        // Load file & execute commands within
-        string[] commands = File.ReadAllLines(cfgPath);
-        for(int i = 0; i < commands.Length; i++)
-        {
-            // Return out if we hit an invalid command 
-            if(!Execute(commands[i])){
-                return new TerminalReturn(false, $"Bad command: {commands[i]}, cfg execution stopped.");
-            }
-        }
-        //Print(ParseCfg(cfgPath));
-
-        return new TerminalReturn(true, $"'{cfgName}.cfg' ran");
-    }
-
-    TerminalReturn Echo(string args)
-    {
-        Print(args.Remove(0,4));
-        
-        return new TerminalReturn(true, null);
-    }
-
-    TerminalReturn ShowLog(string args)
-    {
-        string output = "";
-        foreach(var command in _commandLog)
-        {
-            output += command + '\n';
-        }
-        return new TerminalReturn(true, output);
-    }
-
-    TerminalReturn Help(string args)
-    {
-        string output = "";
-        string[] argSplit = args.Split(' ');
-        // If no command arg, print help's help text along with list of all commands
-        if(argSplit.Length == 1){
-            foreach(var shit in _commands)
-            {
-                output += shit.Key + '\n'; 
-            }
-            output += _commands["help"].HelpText + '\n';
-            return new TerminalReturn(true, output);
-        }
-        
-        TerminalCommand command;
-        bool isValidCommand = _commands.TryGetValue(argSplit[1], out command);
-        if(isValidCommand == false){
-            return new TerminalReturn(false, "Invalid Command");
-        }
-        return new TerminalReturn(true, command.HelpText);
-    }
-
-    TerminalReturn Clear(string args)
-    {
-        _output.Clear();
-        return new TerminalReturn(true, null);
-    } 
 }
