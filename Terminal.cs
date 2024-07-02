@@ -4,10 +4,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+
 using FileAccess = Godot.FileAccess; // We want to use Godot's not C#'s
+using KrgTerminal;
 
-
-// Next commit: Fleshed out autocomplete. Removed extension method to a local function
+// Next commit: Moved types to their own files, renamed & put them under a namespace
 // Next push: Overhauled input validation; Added autocomplete for command args
 /*
     TODO:
@@ -26,20 +27,24 @@ using FileAccess = Godot.FileAccess; // We want to use Godot's not C#'s
         and keys with two word names use whitespace instead of underscores too? Ffs
 */
 
-/// <summary>
-/// Key bind to execute a terminal command
-/// </summary>
-struct Bind
+namespace KrgTerminal
 {
-    public string BindCommand; // Command that created the bind; Used to serialize in binds.cfg
-    public string ActionName;  // Name in Godot's InputMap
-    public string Command;     // Terminal Command to be Executed on ActionName pressed
-
-    public Bind(string bindCommand, string actionName, string command)
+    /// <summary>
+    /// Key bind to execute a terminal command
+    /// </summary>
+    struct Bind
     {
-        (BindCommand, ActionName, Command) = (bindCommand, actionName, command);
+        public string BindCommand; // Command that created the bind; Used to serialize in binds.cfg
+        public string ActionName;  // Name in Godot's InputMap
+        public string Command;     // Terminal Command to be Executed on ActionName pressed
+
+        public Bind(string bindCommand, string actionName, string command)
+        {
+            (BindCommand, ActionName, Command) = (bindCommand, actionName, command);
+        }
     }
 }
+
 
 /// <summary>
 /// Data returned from a <c>TerminalFunction</c> 
