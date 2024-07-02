@@ -7,11 +7,12 @@ using System.Collections.Generic;
 using FileAccess = Godot.FileAccess; // We want to use Godot's not C#'s
 
 
-// Next commit: Overhauled input validation; Added autocomplete for command args
+// Next commit: Fleshed out autocomplete. Removed extension method to a local function
+// Next push: Overhauled input validation; Added autocomplete for command args
 /*
     TODO:
-        - fix suggestion insert to support multiple args
-        - Move suggestion box to align with command's args when for them
+        - Add valid key names to bind's autocomplete 
+        - Load autocomplete data from text file for big ones
 
         We need to make some kind of system to either give precidence
         or not let already occupied keys be bound
@@ -24,30 +25,6 @@ using FileAccess = Godot.FileAccess; // We want to use Godot's not C#'s
         "key_" prefix, but that's invalid for OS.FindKeycodeFromString()????????
         and keys with two word names use whitespace instead of underscores too? Ffs
 */
-
-/// <summary>
-/// Container for extension methods 
-/// </summary>
-public static partial class Extension
-{
-    /// <summary>
-    /// Sequential similarity from 0.0f to 1.0f 
-    /// </summary>
-    public static float Similarity(this string a, string b)
-    {
-        // We loop checking the char's until we hit a non-match
-        float matchingCharCount = 0; 
-        for(int i = 0; i < Mathf.Min(a.Length, b.Length); i++)
-        {   
-            if(a[i] != b[i]){
-                return 0.0f;
-            }
-            matchingCharCount += 1.0f;
-        }
-        // Return percentage of characters that match
-        return (matchingCharCount / (a.Length+b.Length)) * 2.0f;
-    }
-}
 
 /// <summary>
 /// Key bind to execute a terminal command
@@ -136,6 +113,33 @@ public struct InputState
 
     public int EndSpaceCount() => Split.Length - Words.Length;
     public int ArgIndex() => Mathf.Max(Words.Count() - 2 + EndSpaceCount(), 0);
+    
+    // This needs to be re-written
+    public int LastWordStartIndex()
+    {
+        int argIndex = ArgIndex();
+        int charCount = 0;
+
+        if(EndSpaceCount() > 0)
+        {
+            for(int i = 0; i < argIndex + 1; i++)
+            {
+                charCount += Words[i].Length;
+                charCount += 1;
+            }
+
+            return charCount;
+        }
+        else
+        {
+            for(int i = 0; i < Words.Length - 1; i++)
+            {
+                charCount += Words[i].Length;
+                charCount += 1; // space
+            }
+            return charCount;
+        }
+    } 
 } 
 
 
@@ -149,7 +153,6 @@ public partial class Terminal : Control
     static string CfgPath(string name) => $"{CFG_DIR}/{name}.cfg";
     
     Dictionary<string, TerminalCommand> _commands = new Dictionary<string, TerminalCommand>();
-    public string[] GetCommands() => _commands.Keys.ToArray();
 
     // A dictionary for each string arg type Ex. command, mapname 
     Dictionary<string, string[]> _autoCompleteDics = new Dictionary<string, string[]>();
@@ -249,6 +252,9 @@ public partial class Terminal : Control
         AddCommand( 
         new TerminalCommand("log", 0, ShowLog, "'log' Prints command history to output log"));
 
+
+
+
         TerminalCommand tComm = new TerminalCommand()
         {
             Key = "test",
@@ -285,8 +291,8 @@ public partial class Terminal : Control
             ValidArgs = new string[][]
             {
                 new string[]{"bass", "bacsy", "bass0", "ass1", "ass2"}, 
-                new string[]{"bussy", "bguuuy", "bussy1", "bfuj", "ass2"},
-                new string[]{"bussy", "bguuuy", "bussy1", "bfuj", "ass2"}
+                new string[]{"ii.txt"},
+                new string[]{"bguuuy", "bfuj", "ass2"}
             },
             Function = ShowLog,
             HelpText = "test"
@@ -298,8 +304,22 @@ public partial class Terminal : Control
 
         LoadBinds();
 
+        GetFileAsLines("s");
+
         base._Ready();
     }  
+
+    string[] GetFileAsLines(string name)
+    {
+        string file = FileAccess.GetFileAsString("addons/krg-terminal/keycodes.txt");
+        Error error = FileAccess.GetOpenError();
+        if(error != Error.Ok){
+            GD.PrintErr("Terminal couldnt load ignes");
+        }
+        string[] fileLines = file.Split('\n');
+
+        return fileLines;
+    }
 
     public override void _Input(InputEvent @event)
     {
@@ -483,8 +503,7 @@ public partial class Terminal : Control
 
         // Insert arg to existing command 
         if(inputState.Command.HasValue){
-
-            _input.DeleteText(inputState.Words[0].Length + 1, _input.Text.Length);
+            _input.DeleteText(inputState.LastWordStartIndex(), _input.Text.Length);
             _input.InsertTextAtCaret(suggestion);
         }
         // Insert command 
@@ -514,7 +533,25 @@ public partial class Terminal : Control
     }
 
     void SuggestionShowMatches()
-    {
+    {   
+        /// <summary>
+        /// Sequential similarity from 0.0f to 1.0f 
+        /// </summary>
+        static float Similarity(string a, string b)
+        {
+            // We loop checking the char's until we hit a non-match
+            float matchingCharCount = 0; 
+            for(int i = 0; i < Mathf.Min(a.Length, b.Length); i++)
+            {   
+                if(a[i] != b[i]){
+                    return 0.0f;
+                }
+                matchingCharCount += 1.0f;
+            }
+            // Return percentage of characters that match
+            return (matchingCharCount / (a.Length+b.Length)) * 2.0f;
+        }
+
         static string[] Matches(string input, string[] strings)
         {   
             GD.Print("\n\nInput: " + input);
@@ -523,7 +560,7 @@ public partial class Terminal : Control
             (string text, float sim)[] potMatches = new (string text, float sim)[strings.Length];
             for(int i = 0; i < strings.Length; i++)
             {
-                potMatches[i] = (strings[i], strings[i].Similarity(input));
+                potMatches[i] = (strings[i], Similarity(strings[i], input));
             }
 
             GD.Print("Matches:_____________");
@@ -556,6 +593,9 @@ public partial class Terminal : Control
 
         void SetSuggestions(string[] text)
         {
+            // Offset sugg box to start of word to be autocompleted. 13 pulled directly from my ass
+            ((Control)_suggParent).OffsetLeft = 13 * inputState.LastWordStartIndex();
+
             //SuggestionClear();
             for(int i = 0; i < text.Length && i < SuggestionCount; i++){
                 _suggs[i].Text = text[i];
@@ -595,25 +635,29 @@ public partial class Terminal : Control
         // Command has AutoComplete data?
         if(command.ValidArgs == null){
             return;
-        }
-        
-        // Find all non-empty strings, subtract from total strings to get the # of spaces at the end
-        var words = inputState.Words.Where(word => word != "");
-        int endSpaceCount = inputState.Words.Length - words.Count();
+        }   
 
-        int argIndex = Mathf.Max(words.Count() - 2 + endSpaceCount, 0); // Max is redundant, why here?
-        GD.Print($"argIndex: {argIndex}");
-        //GD.Print($"argIndex: {inputState.ArgIndex()}");
+        int argIndex = inputState.ArgIndex();
+
+        // Are more args in input than the command takes?
+        if(argIndex > command.ArgCount){
+            return;
+        }
+
+        // Does arg have autocomplete data?
+        if(command.ValidArgs[argIndex] == null){
+            return;
+        } 
 
         // Show all valid args if no arg input yet
-        if(endSpaceCount == 1){
+        if(inputState.EndSpaceCount() == 1){
             validStrings = command.ValidArgs[argIndex];
             SetSuggestions(validStrings);
             return;
         }
 
         // Get arg input
-        compare = words.Last();
+        compare = inputState.Words.Last();
         validStrings = command.ValidArgs[argIndex];
         matches = Matches(compare, validStrings);
         SetSuggestions(matches);
@@ -655,7 +699,6 @@ public partial class Terminal : Control
 
         return true;
     }
-
 
     void SaveBinds()
     {
