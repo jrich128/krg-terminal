@@ -10,7 +10,7 @@ using FileAccess = Godot.FileAccess; // We want to use Godot's not C#'s
 using KrgTerminal;
 
 
-/* Next Commit: Put SuggestionBox into own script
+/* 
     TODO:
         - Fix keycode.txt names that are supposed to have underscores
         - unbind & clearbinds commands

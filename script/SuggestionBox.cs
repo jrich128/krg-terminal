@@ -6,6 +6,8 @@ using KrgTerminal;
 
 public partial class SuggestionBox : Control
 {
+    static bool dbPrint = false;
+
 	Terminal _terminal;
 	InputState _inputState;
 
@@ -128,7 +130,7 @@ public partial class SuggestionBox : Control
 
         static string[] Matches(string input, string[] strings)
         {   
-            GD.Print("\n\nInput: " + input);
+            if(dbPrint) GD.Print("\n\nInput: " + input);
 
             // Pair strings & their similarity into an array of tuples
             (string text, float sim)[] potMatches = new (string text, float sim)[strings.Length];
@@ -137,18 +139,18 @@ public partial class SuggestionBox : Control
                 potMatches[i] = (strings[i], Similarity(strings[i], input));
             }
 
-            GD.Print("Matches:_____________");
+            if(dbPrint) GD.Print("Matches:_____________");
             // Find all matches i.e. any strings with a sim > 0 && != 1 as we don't want to suggest an already complete word
             var matches = potMatches.Where(e => e.sim > 0.0f && e.sim != 1.0f);
-            foreach(var match in matches)
+            if(dbPrint) foreach(var match in matches)
             {
                 GD.Print(match);
             }
 
-            GD.Print("Matches sorted by complement of perecentage similarity:_____________");
+            if(dbPrint) GD.Print("Matches sorted by complement of perecentage similarity:_____________");
             // Sort based on complement of perectage similarity
             matches = matches.OrderBy(e => (1.0f - e.sim));
-            foreach(var match in matches)
+            if(dbPrint) foreach(var match in matches)
             {
                 GD.Print(match);
             }            
@@ -160,7 +162,7 @@ public partial class SuggestionBox : Control
                 output[i] = matches.ElementAt(i).text;
             }
 
-            GD.Print("Output Len: " + output.Length);
+            if(dbPrint) GD.Print("Output Len: " + output.Length);
             
             return output;
         }
