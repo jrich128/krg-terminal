@@ -1,7 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://cym1ckx5bq6ic"]
+[gd_scene load_steps=8 format=3 uid="uid://cym1ckx5bq6ic"]
 
-[ext_resource type="Script" path="res://addons/krg-terminal/Terminal.cs" id="2_bc6xk"]
+[ext_resource type="Script" path="res://addons/krg-terminal/script/Terminal.cs" id="2_bc6xk"]
 [ext_resource type="Theme" uid="uid://cnqv5ub2wj0ud" path="res://addons/krg-terminal/theme/theme_console.tres" id="2_mwurq"]
+[ext_resource type="Script" path="res://TestC.cs" id="3_85iya"]
+[ext_resource type="Script" path="res://addons/krg-terminal/script/SuggestionBox.cs" id="3_s8wd1"]
 
 [sub_resource type="Animation" id="Animation_s8ntp"]
 length = 0.001
@@ -89,6 +91,7 @@ offset_right = -63.175
 offset_bottom = 0.495026
 grow_vertical = 0
 theme_override_constants/separation = 0
+script = ExtResource("3_s8wd1")
 
 [node name="sug_0" type="Button" parent="margin/vbox/input/sug_buttons"]
 layout_mode = 2
@@ -123,3 +126,6 @@ alignment = 0
 libraries = {
 "": SubResource("AnimationLibrary_xiapk")
 }
+
+[node name="player" type="Node" parent="."]
+script = ExtResource("3_85iya")

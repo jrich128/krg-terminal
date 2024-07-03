@@ -10,19 +10,10 @@ using FileAccess = Godot.FileAccess; // We want to use Godot's not C#'s
 using KrgTerminal;
 
 
-/*
+/* Next Commit: Put SuggestionBox into own script
     TODO:
         - Fix keycode.txt names that are supposed to have underscores
-        - Add valid key names to bind's autocomplete 
-        - Load autocomplete data from text file for big ones
-
-        We need to make some kind of system to either give precidence
-        or not let already occupied keys be bound
-
         - unbind & clearbinds commands
-        - Fix key name confusion - Why are key names listed with the 
-        "key_" prefix, but that's invalid for OS.FindKeycodeFromString()????????
-        and keys with two word names use whitespace instead of underscores too? Ffs
 */
 
 namespace KrgTerminal
@@ -81,7 +72,7 @@ public partial class Terminal : Control
     const string AUTORUN_PATH = $"{CFG_DIR}/autorun.cfg";
     static string CfgPath(string name) => $"{CFG_DIR}/{name}.cfg";
     
-    Dictionary<string, TerminalCommand> _commands = new Dictionary<string, TerminalCommand>();
+    public Dictionary<string, TerminalCommand> Commands = new Dictionary<string, TerminalCommand>();
     Dictionary<string, TVar> _tvars = new Dictionary<string, TVar>();
 
 
@@ -99,58 +90,87 @@ public partial class Terminal : Control
     List<Bind> _binds = new List<Bind>();
 
     // Log of all input submitted
-    List<string> _commandLog = new List<string>();
+    public List<string> CommandLog = new List<string>();
     int _logCursor = 0;
-    
-    const int SuggestionCount = 6;
-    Button[] _suggs = new Button[SuggestionCount];
-    int _logBorderWidth = 2; // Width of left border when dislaying _commandLog as suggestions
-    Node _suggParent; 
-    bool SuggsHaveFocus => _suggs.Any(sug => sug.HasFocus());
 
     RichTextLabel _output;
-    LineEdit      _input;
+    public LineEdit Input;
 
     AnimationPlayer _animPlayer;
     Viewport _viewport;
 
     InputState inputState;
-    public InputState GetInputState() => inputState;
+
+    SuggestionBox _suggBox;
+
 
     public int tester = 1;
-
-    /*
-        NPCMan
-            - Sunter
-            - Dunker
-
-        so sunter's TVars would be prefixed with their path i.e.
-        set sunter.money 100
-        get sunter.money 
-    */
-    /*
-    void FindTVars()
+    
+    
+    void CreateTVars()
     {
-
-        TVar[] GetNodeVars()
+        Node[] GetTvarNodes()
         {
+            List<Node> nodes = new List<Node>();
 
+            void FindTVarNodes(Node node)
+            {
+                GD.Print(node.Name + " " + node.GetType());
+                // Is object marked with [Tvar]?
+                var attribs = Attribute.GetCustomAttributes(node.GetType());
+                bool hasTvarAttrib = attribs.Any(attrib => attrib.GetType() == typeof(TVarAttribute));
+                if(hasTvarAttrib){
+                    nodes.Add(node);
+                }
+
+                var children = node.GetChildren();
+                foreach(var child in children)
+                {
+                    FindTVarNodes(child);
+                }
+            }
+
+            FindTVarNodes(GetNode("/root"));
+
+            return nodes.ToArray();
         }
-        // Is object marked with [Save]?
-		var attribs = Attribute.GetCustomAttributes(objType);
-		bool hasSaveAttrib = attribs.Any(attrib => attrib.GetType() == typeof(SaveAttribute));
-		if(!hasSaveAttrib){
-			return null;
-		}
-		
-		// Get properties marked with [Save]
-		var properties = objType.GetRuntimeProperties();
-		properties = properties.Where(prop => prop.CustomAttributes.Any(attrib => attrib.AttributeType == typeof(SaveAttribute))); 
-    }   */
+      
+		void MakeTVars()
+        {
+            var nodes = GetTvarNodes();
+            foreach(var node in nodes)
+            {
+                Type type = node.GetType();
 
-    public override void _Ready()
-    {   
-        //GetNode("/root").Connect(SignalName.Ready, new Callable(this, "FindTVars")); 
+                var fields = type.GetRuntimeFields();
+		        fields = fields.Where(field => field.CustomAttributes.Any(attrib => attrib.AttributeType == typeof(TVarAttribute)));
+
+                foreach(var field in fields)
+                {   
+                    string tVarKey =$"{node.Name}.{field.Name}"; 
+                    _tvars.Add(tVarKey, 
+                    new TVar()
+                    {   
+                        Obj = node, VarType = Variant.Type.Int,// FUCK 
+                        Member = field
+                    });
+
+                    GD.Print($"Tvar: {tVarKey} added with value of {_tvars[tVarKey].Get().Value}");
+                }
+                
+                var properties = type.GetRuntimeProperties();
+		        properties = properties.Where(prop => prop.CustomAttributes.Any(attrib => attrib.AttributeType == typeof(TVarAttribute)));
+
+            }
+        }
+
+		
+        MakeTVars();
+    }   
+
+    void Init()
+    {
+        CreateTVars();
 
         // Create cfg directory if none
         if(!DirAccess.DirExistsAbsolute(CFG_DIR)){
@@ -163,19 +183,13 @@ public partial class Terminal : Control
         }
 
         _output = GetNode<RichTextLabel>("margin/vbox/output");
-        _input  = GetNode<LineEdit>("margin/vbox/input");
-        _input.Connect("text_submitted", new Callable(this, "SubmitInput"));
-        _input.Connect("focus_entered" , new Callable(this, "OnInputFocusEntered"));
-        _input.Connect("text_changed"  , new Callable(this, "OnInputChanged"));
+        Input  = GetNode<LineEdit>("margin/vbox/input");
+        Input.Connect("text_submitted", new Callable(this, "SubmitInput"));
+        Input.Connect("focus_entered" , new Callable(this, "OnInputFocusEntered"));
+        Input.Connect("text_changed"  , new Callable(this, "OnInputChanged"));
 
         _animPlayer = GetNode<AnimationPlayer>("animation_player");
-        
-        _suggParent = GetNode("margin/vbox/input/sug_buttons");
-        for(int i = 0; i < SuggestionCount; i++){
-            _suggs[i] = _suggParent.GetNode<Button>($"sug_{i}");
-            _suggs[i].Connect("pressed", new Callable(this, "SuggestionClicked"));
-            _suggs[i].Text = "NULL";
-        }
+        _suggBox = GetNode<SuggestionBox>("margin/vbox/input/sug_buttons");
 
         _viewport = GetViewport(); 
         if(_viewport == null){
@@ -198,9 +212,6 @@ public partial class Terminal : Control
         AddCommand( 
         new TerminalCommand("run", 1, RunCfg, "'run <filename>' Reads a text file from 'cfg/' directory with commands in it & executes them"));
 
-        AddCommand( 
-        new TerminalCommand("bind", 2, CreateBind, "'bind <key> <command>' Binds a key to execute a command"));
-        
         AddCommand( 
         new TerminalCommand("echo", 1, Echo, "'echo <text>' Prints text to the output log"));
 
@@ -247,14 +258,26 @@ public partial class Terminal : Control
             ArgAutocomplete = new string[][]
             {
                 new string[]{"bass", "bacsy", "bass0", "ass1", "ass2"}, 
-                new string[]{"ii.txt"},
+                GetFileAsLines("res://addons/krg-terminal/keycodes.txt"),
                 new string[]{"bguuuy", "bfuj", "ass2"}
             },
             Function = ShowLog,
             HelpText = "test"
         };
 
-        
+        AddCommand( 
+        new TerminalCommand()
+        {
+            Key      = "bind",
+            ArgCount = 2,
+            ArgAutocomplete = new string[][]
+            {
+                GetFileAsLines("res://addons/krg-terminal/keycodes.txt"),
+                Commands.Keys.ToArray()
+            },
+            Function = CreateBind,
+            HelpText = "'bind <key> <command>' Binds a key to execute a command"
+        });
 
         _tvars.Add("ass", 
         new TVar()
@@ -306,10 +329,14 @@ public partial class Terminal : Control
         LoadBinds();
 
         //GetFileAsLines("s");
+    }
 
-        /*
-            Loop from root to find objects with classes with Tvar attribute and shit
-        */
+    public override void _Ready()
+    {   
+        GetNode("/root").Connect(SignalName.Ready, new Callable(this, "Init")); 
+
+        var f = ((InputEventKey)InputMap.ActionGetEvents("forward")[0]).PhysicalKeycode;
+        GD.Print(f);
 
         base._Ready();
     }  
@@ -359,18 +386,17 @@ public partial class Terminal : Control
         // Clear input with delete
         if(@event.IsActionPressed("ui_text_delete"))
         {
-            _input.Text = "";
+            Input.Text = "";
             _viewport.SetInputAsHandled(); 
             return;
         }
         // Show command history in suggestions
         if(@event.IsActionPressed("ui_up"))
         {
-            if(SuggsHaveFocus){
+            if(_suggBox.HasFocus){
                 return;
             }
-            if(SuggestionShowHist()){
-                _suggs[0].GrabFocus();
+            if(_suggBox.ShowHistory()){
                 _viewport.SetInputAsHandled(); 
                 return;
             }
@@ -378,25 +404,25 @@ public partial class Terminal : Control
         // Give focus to suggestions
         if(@event.IsActionPressed("ui_down"))
         { 
-            if(SuggsHaveFocus){
+            if(_suggBox.HasFocus){
                 return;
             }
-            _suggs[0].GrabFocus();
+            _suggBox.SelectFirst();
             _viewport.SetInputAsHandled();
             return;
         }
         // Tab to bring focus back to input text edit
         if(@event.IsActionPressed("ui_focus_next"))
         {
-            _input.GrabFocus();
+            Input.GrabFocus();
             _viewport.SetInputAsHandled();
             return;
         }
         // Esc to clear suggestions & give focus back to input
         if(@event.IsActionPressed("ui_cancel"))
         {
-            _input.GrabFocus();
-            SuggestionClear();
+            Input.GrabFocus();
+            _suggBox?.Clear();
             _viewport.SetInputAsHandled();
             return;
         }
@@ -415,7 +441,7 @@ public partial class Terminal : Control
         // TODO: Replace with StringToCommand
         // Check if first string in command is valid command, execute it if so 
         TerminalCommand command;
-        bool isValidCommand = _commands.TryGetValue(commandName, out command);
+        bool isValidCommand = Commands.TryGetValue(commandName, out command);
         if(isValidCommand == false){
             return false;
         }
@@ -444,15 +470,15 @@ public partial class Terminal : Control
     {
         Print("===============================================", true, KrgTerminal.Color.Black, StyleFlag.Underline | StyleFlag.Bold);
 
-        _commandLog.Add(text);
-        _logCursor = _commandLog.Count - 1; // reset history cursor 
+        CommandLog.Add(text);
+        _logCursor = CommandLog.Count - 1; // reset history cursor 
 
         // Log input in output 
         Print(">" + text, true, KrgTerminal.Color.Green);
 
         // Delete input from line edit if it came from there
-        if(_input.Text == text){
-            _input.Text = "";
+        if(Input.Text == text){
+            Input.Text = "";
         }
 
         // See if Input text is a valid command
@@ -461,12 +487,12 @@ public partial class Terminal : Control
             Print("Unknown command", true, KrgTerminal.Color.Error, StyleFlag.Error);
         }
 
-        SuggestionClear();
+        _suggBox.Clear();
     }
 
     public void AddCommand(TerminalCommand command)
     {
-        _commands.Add(command.Key, command);
+        Commands.Add(command.Key, command);
     }
 
     public void Print(string text, bool newLine = true, KrgTerminal.Color color = KrgTerminal.Color.Default, StyleFlag flags = StyleFlag.None)
@@ -495,7 +521,7 @@ public partial class Terminal : Control
 
         // Check first word against command dictionary
         string commandName = input.Split(' ').First();
-        bool validCommand = _commands.TryGetValue(commandName, out result);
+        bool validCommand = Commands.TryGetValue(commandName, out result);
         if(validCommand == false){
             return null;
         }
@@ -503,207 +529,17 @@ public partial class Terminal : Control
         return result;
     }
 
-    void SuggestionClicked()
-    {
-        // Grab text from focused suggestion button
-        string suggestion = _suggs.Single(sugg => sugg.HasFocus()).Text;
-
-        // Insert arg to existing command 
-        if(inputState.Command.HasValue){
-            _input.DeleteText(inputState.LastWordStartIndex(), _input.Text.Length);
-            _input.InsertTextAtCaret(suggestion);
-        }
-        // Insert command 
-        else
-        {
-            _input.Text = suggestion;
-        }
-
-        // Move caret to end of input & select input line edit
-        _input.CaretColumn = _input.Text.Length; 
-        _input.GrabFocus();
-
-        SuggestionClear();                                     
-    }
-
     public void OnInputChanged(string newText)
     {
         inputState = new InputState()
         {   
-            HasInput = _input.Text != "",
+            HasInput = Input.Text != "",
             Split = newText.Split(' '), 
             Words = newText.Split(' ').Where(word => word != "").ToArray(),
             Command = StringToCommand(newText)
         };     
 
-        SuggestionShowMatches();
-    }
-
-    void SuggestionShowMatches()
-    {   
-        /// <summary>
-        /// Sequential similarity from 0.0f to 1.0f 
-        /// </summary>
-        static float Similarity(string a, string b)
-        {
-            // We loop checking the char's until we hit a non-match
-            float matchingCharCount = 0; 
-            for(int i = 0; i < Mathf.Min(a.Length, b.Length); i++)
-            {   
-                if(a[i] != b[i]){
-                    return 0.0f;
-                }
-                matchingCharCount += 1.0f;
-            }
-            // Return percentage of characters that match
-            return (matchingCharCount / (a.Length+b.Length)) * 2.0f;
-        }
-
-        static string[] Matches(string input, string[] strings)
-        {   
-            GD.Print("\n\nInput: " + input);
-
-            // Pair strings & their similarity into an array of tuples
-            (string text, float sim)[] potMatches = new (string text, float sim)[strings.Length];
-            for(int i = 0; i < strings.Length; i++)
-            {
-                potMatches[i] = (strings[i], Similarity(strings[i], input));
-            }
-
-            GD.Print("Matches:_____________");
-            // Find all matches i.e. any strings with a sim > 0 && != 1 as we don't want to suggest an already complete word
-            var matches = potMatches.Where(e => e.sim > 0.0f && e.sim != 1.0f);
-            foreach(var match in matches)
-            {
-                GD.Print(match);
-            }
-
-            GD.Print("Matches sorted by complement of perecentage similarity:_____________");
-            // Sort based on complement of perectage similarity
-            matches = matches.OrderBy(e => (1.0f - e.sim));
-            foreach(var match in matches)
-            {
-                GD.Print(match);
-            }            
-
-            // Create string[] with just the text from the sorted tuple array
-            string[] output = new string[matches.Count()];
-            for(int i = 0; i < output.Length; i++)
-            {
-                output[i] = matches.ElementAt(i).text;
-            }
-
-            GD.Print("Output Len: " + output.Length);
-            
-            return output;
-        }
-
-        void SetSuggestions(string[] text)
-        {
-            // Offset sugg box to start of word to be autocompleted. 13 pulled directly from my ass
-            ((Control)_suggParent).OffsetLeft = 13 * inputState.LastWordStartIndex();
-
-            //SuggestionClear();
-            for(int i = 0; i < text.Length && i < SuggestionCount; i++){
-                _suggs[i].Text = text[i];
-                _suggs[i].Visible = true;
-            }
-        }
-
-        SuggestionClear();
-
-        // Nothing to suggest if no input
-        if(!inputState.HasInput){
-            return;
-        }
-
-        string compare        = null;
-        string[] validStrings = null;
-        string[] matches      = null;
-        
-        // Autocomplete for commands 
-        if(!inputState.Command.HasValue){
-            compare = inputState.Words[0];            // Find command at first index
-            validStrings = _commands.Keys.ToArray();  // Get string[] of all potential commands
-            matches = Matches(compare, validStrings); // Find all that match
-            SetSuggestions(matches);
-            return;
-        }
-
-        // Autocomplete for args _______________________________ 
-
-        TerminalCommand command = inputState.Command.Value;
-        
-        // Command has args?
-        if(command.ArgCount == 0){
-            return;
-        }
-        // Command has AutoComplete data?
-        if(command.ArgAutocomplete == null){
-            return;
-        }   
-
-        int argIndex = inputState.ArgIndex();
-
-        // Are more args in input than the command takes?
-        if(argIndex + 1 > command.ArgCount){
-            return;
-        }
-
-        // Does arg have autocomplete data?
-        if(command.ArgAutocomplete[argIndex] == null){
-            return;
-        } 
-
-        // Show all valid args if no arg input yet
-        if(inputState.EndSpaceCount() == 1){
-            validStrings = command.ArgAutocomplete[argIndex];
-            SetSuggestions(validStrings);
-            return;
-        }
-
-        // Get arg input
-        compare = inputState.Words.Last();
-        validStrings = command.ArgAutocomplete[argIndex];
-        matches = Matches(compare, validStrings);
-        SetSuggestions(matches);
-    }
-
-    void SuggestionClear()
-    {   
-        _suggs.All(sugg => {
-            sugg.Text = "";  
-            sugg.Visible = false;  
-            ((StyleBoxFlat)sugg.GetThemeStylebox("normal")).BorderWidthLeft = 0;
-            ((StyleBoxFlat)sugg.GetThemeStylebox("focus")).BorderWidthLeft = 0;
-            ((StyleBoxFlat)sugg.GetThemeStylebox("hover")).BorderWidthLeft = 0;
-            return true;
-            });
-    }
-
-    bool SuggestionShowHist()
-    {
-        SuggestionClear();
-        if(_commandLog.Count == 0){
-            return false;
-        }
-
-        // Reverse to show most recent at top
-        var histReverse = _commandLog.ToArray();
-        Array.Reverse(histReverse);
-
-        for(int i = 0; i < _commandLog.Count && i < SuggestionCount; i++)
-        {   
-            // Give suggestion buttons a mark on the left side for color coding
-            ((StyleBoxFlat)_suggs[i].GetThemeStylebox("normal")).BorderWidthLeft = _logBorderWidth;
-            ((StyleBoxFlat)_suggs[i].GetThemeStylebox("focus")).BorderWidthLeft  = _logBorderWidth;
-            ((StyleBoxFlat)_suggs[i].GetThemeStylebox("hover")).BorderWidthLeft  = _logBorderWidth;
-            
-            _suggs[i].Text = histReverse[i];
-            _suggs[i].Visible = true;
-        }
-
-        return true;
+        _suggBox?.Update(inputState);
     }
 
     void SaveBinds()
@@ -723,7 +559,7 @@ public partial class Terminal : Control
 
     void LoadBinds()
     {
-        if(!Godot.FileAccess.FileExists(BINDS_PATH)){
+        if(!FileAccess.FileExists(BINDS_PATH)){
             return;
         }
 
@@ -731,7 +567,12 @@ public partial class Terminal : Control
         {
             string[] lines = file.GetAsText(true).Split('\n');
 
-            for(int i = 0; i < lines.Length; i++){
+            for(int i = 0; i < lines.Length; i++)
+            {
+                if(lines[_binds.Count] == ""){
+                    continue;
+                } 
+
                 CreateBind(lines[_binds.Count]);
             }
         }
@@ -751,7 +592,7 @@ public partial class Terminal : Control
     
     public void Open()
     {
-        _input.GrabFocus();
+        Input.GrabFocus();
         Visible = true;
         _animPlayer.Play("open");
         EmitSignal(SignalName.Opened, Visible);

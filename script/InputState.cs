@@ -21,6 +21,8 @@ namespace KrgTerminal
 			int argIndex = ArgIndex();
 			int charCount = 0;
 
+			
+
 			if(EndSpaceCount() > 0)
 			{
 				for(int i = 0; i < argIndex + 1; i++)

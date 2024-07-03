@@ -5,7 +5,7 @@ using System.IO;
 using FileAccess = Godot.FileAccess;
 using System.Reflection;
 
-// TVar attribute, mark 
+
 
 public struct TVar
 {
@@ -172,17 +172,14 @@ public partial class Terminal : Control
     CommandReturn CreateBind(string args)
     {
         // bind <key> <command>
-        string[] argsSplit = args.Split(' ');
-        if(argsSplit.Length < 3){
-            return new CommandReturn(false, "Syntax is: bind <key> <command>");
-        }
+        string[] argsSplit = args.Split(' ');   
         
         string keyName     = argsSplit[1];
         string commandName = argsSplit[2];
         string command = args.Remove(0, argsSplit[0].Length + argsSplit[1].Length + 2);//       argsSplit[2];
  
         // Check command is valid
-        if(!_commands.TryGetValue(commandName, out _)){
+        if(!Commands.TryGetValue(commandName, out _)){
             return new CommandReturn(false, $"'{commandName}' Unknown command.");
         }
         // Check if keycode string is valid
@@ -238,6 +235,7 @@ public partial class Terminal : Control
 
     CommandReturn Echo(string args)
     {
+		// Remove "echo ", print the rest
         Print(args.Remove(0,4));
         
         return new CommandReturn(true, null);
@@ -246,7 +244,7 @@ public partial class Terminal : Control
     CommandReturn ShowLog(string args)
     {
         string output = "";
-        foreach(var command in _commandLog)
+        foreach(var command in CommandLog)
         {
             output += command + '\n';
         }
@@ -259,16 +257,16 @@ public partial class Terminal : Control
         string[] argSplit = args.Split(' ');
         // If no command arg, print help's help text along with list of all commands
         if(argSplit.Length == 1){
-            foreach(var shit in _commands)
+            foreach(var shit in Commands)
             {
                 output += shit.Key + '\n'; 
             }
-            output += _commands["help"].HelpText + '\n';
+            output += Commands["help"].HelpText + '\n';
             return new CommandReturn(true, output);
         }
         
         TerminalCommand command;
-        bool isValidCommand = _commands.TryGetValue(argSplit[1], out command);
+        bool isValidCommand = Commands.TryGetValue(argSplit[1], out command);
         if(isValidCommand == false){
             return new CommandReturn(false, "Invalid Command");
         }

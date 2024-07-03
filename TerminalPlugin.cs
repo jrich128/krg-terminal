@@ -5,13 +5,9 @@ using System;
 [Tool]
 public partial class TerminalPlugin : EditorPlugin
 {
-	// I made a bigggg fuck here: DONT USE CONST!
-	// Godot will cache them if it feels like it & they will 
-	// refuse to update unless you change the varible name.
-	// GOOD LUCK TRACKING DOWN THAT ERROR! I had a fun time -_-
-	const string Dir            = "addons/krg-terminal";
-	const string TerminalScript = "Terminal.cs";
-	const string TerminalIcon   = "icon.png";
+	static string Dir            = "addons/krg-terminal";
+	static string TerminalScript = "script/Terminal.cs";
+	static string TerminalIcon   = "icon.png";
 	static string Path(string fileName) => $"{Dir}/{fileName}";
 	
 	const string TypeName = "Terminal";
