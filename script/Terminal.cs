@@ -161,6 +161,18 @@ public partial class Terminal : Control
                 var properties = type.GetRuntimeProperties();
 		        properties = properties.Where(prop => prop.CustomAttributes.Any(attrib => attrib.AttributeType == typeof(TVarAttribute)));
 
+                foreach(var prop in properties)
+                {   
+                    string tVarKey =$"{node.Name}.{prop.Name}"; 
+                    _tvars.Add(tVarKey, 
+                    new TVar()
+                    {   
+                        Obj = node, VarType = Variant.Type.Int,// FUCK 
+                        Member = prop
+                    });
+
+                    GD.Print($"Tvar: {tVarKey} added with value of {_tvars[tVarKey].Get().Value}");
+                }
             }
         }
 

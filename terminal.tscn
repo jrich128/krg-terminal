@@ -1,8 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://cym1ckx5bq6ic"]
+[gd_scene load_steps=7 format=3 uid="uid://cym1ckx5bq6ic"]
 
 [ext_resource type="Script" path="res://addons/krg-terminal/script/Terminal.cs" id="2_bc6xk"]
 [ext_resource type="Theme" uid="uid://cnqv5ub2wj0ud" path="res://addons/krg-terminal/theme/theme_console.tres" id="2_mwurq"]
-[ext_resource type="Script" path="res://TestC.cs" id="3_85iya"]
 [ext_resource type="Script" path="res://addons/krg-terminal/script/SuggestionBox.cs" id="3_s8wd1"]
 
 [sub_resource type="Animation" id="Animation_s8ntp"]
@@ -46,6 +45,7 @@ _data = {
 [node name="terminal" type="Panel"]
 anchors_preset = 10
 anchor_right = 1.0
+offset_right = 1152.0
 offset_bottom = 218.0
 grow_horizontal = 2
 theme = ExtResource("2_mwurq")
@@ -126,6 +126,3 @@ alignment = 0
 libraries = {
 "": SubResource("AnimationLibrary_xiapk")
 }
-
-[node name="player" type="Node" parent="."]
-script = ExtResource("3_85iya")
